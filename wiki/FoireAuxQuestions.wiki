@@ -1,0 +1,20 @@
+#summary One-sentence summary of this page.
+
+= Introduction =
+
+Cette foire aux question a pour but de rassembler le maximum d'unformation concernant l'usage de l'application Keyyo VoIP pour Android.
+
+= Quels sont les mobiles supportés =
+Les mobiles supportés sont
+  * Mobile 1
+  * Mobile 2
+  * Mobile 3
+
+= Puis-je utiliser l'application en 3G =
+
+L'application ne fonctionnera pas sur réseau mobile (3G/Edge) du fait de limitation physique du réseau. Elle est testée et validée sur les réseaux Wi-Fi
+
+= Comment utiliser mon compte SIP / VoIP =
+
+Rendez vous sur votre espace client Keyyo Mobile, les instructions détaillées s'y trouvent
+
