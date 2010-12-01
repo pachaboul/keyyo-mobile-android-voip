@@ -1,4 +1,4 @@
-#summary One-sentence summary of this page.
+#summary Page d'aide de l'application Keyyo VoIP
 
 = Introduction =
 
@@ -17,4 +17,3 @@ L'application ne fonctionnera pas sur réseau mobile (3G/Edge) du fait de limita
 = Comment utiliser mon compte SIP / VoIP =
 
 Rendez vous sur votre espace client Keyyo Mobile, les instructions détaillées s'y trouvent
-
