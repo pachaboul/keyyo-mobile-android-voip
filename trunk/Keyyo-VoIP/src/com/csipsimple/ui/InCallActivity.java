@@ -58,7 +58,7 @@ import android.widget.EditText;
 import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 
-import com.csipsimple.R;
+import com.keyyomobile.android.voip.R;
 import com.csipsimple.models.CallInfo;
 import com.csipsimple.service.ISipService;
 import com.csipsimple.service.MediaManager.MediaState;

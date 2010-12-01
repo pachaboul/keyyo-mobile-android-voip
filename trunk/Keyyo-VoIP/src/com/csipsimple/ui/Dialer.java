@@ -53,7 +53,7 @@ import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
 
-import com.csipsimple.R;
+import com.keyyomobile.android.voip.R;
 import com.csipsimple.animation.Flip3dAnimation;
 import com.csipsimple.models.Account;
 import com.csipsimple.service.ISipService;

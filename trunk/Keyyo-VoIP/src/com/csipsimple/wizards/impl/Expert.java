@@ -30,7 +30,7 @@ import android.preference.EditTextPreference;
 import android.preference.ListPreference;
 import android.text.TextUtils;
 
-import com.csipsimple.R;
+import com.keyyomobile.android.voip.R;
 import com.csipsimple.models.Account;
 import com.csipsimple.utils.Log;
 

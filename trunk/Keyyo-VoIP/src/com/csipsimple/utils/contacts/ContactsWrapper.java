@@ -28,7 +28,7 @@ import android.graphics.Bitmap;
 import android.net.Uri;
 import android.widget.ArrayAdapter;
 
-import com.csipsimple.R;
+import com.keyyomobile.android.voip.R;
 import com.csipsimple.utils.Compatibility;
 import com.csipsimple.utils.CustomDistribution;
 

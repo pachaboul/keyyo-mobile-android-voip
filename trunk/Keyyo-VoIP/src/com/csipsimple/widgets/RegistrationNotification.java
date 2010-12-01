@@ -23,7 +23,7 @@ import android.content.Context;
 import android.view.View;
 import android.widget.RemoteViews;
 
-import com.csipsimple.R;
+import com.keyyomobile.android.voip.R;
 import com.csipsimple.models.AccountInfo;
 import com.csipsimple.wizards.WizardUtils;
 import com.csipsimple.wizards.WizardUtils.WizardInfo;

@@ -41,7 +41,7 @@ import android.view.View.OnClickListener;
 import android.widget.LinearLayout;
 import android.widget.ListView;
 
-import com.csipsimple.R;
+import com.keyyomobile.android.voip.R;
 import com.csipsimple.db.AccountAdapter;
 import com.csipsimple.db.DBAdapter;
 import com.csipsimple.models.Account;

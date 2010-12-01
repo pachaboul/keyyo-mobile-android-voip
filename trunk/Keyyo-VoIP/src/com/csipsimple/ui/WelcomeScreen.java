@@ -40,7 +40,7 @@ import android.widget.Button;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
-import com.csipsimple.R;
+import com.keyyomobile.android.voip.R;
 import com.csipsimple.models.DownloadProgress;
 import com.csipsimple.models.RemoteLibInfo;
 import com.csipsimple.service.DownloadLibService;

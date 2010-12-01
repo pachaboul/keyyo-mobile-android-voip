@@ -32,7 +32,7 @@ import android.view.WindowManager;
 import android.view.View.OnTouchListener;
 import android.widget.RelativeLayout;
 
-import com.csipsimple.R;
+import com.keyyomobile.android.voip.R;
 import com.csipsimple.widgets.SlidingTab.OnTriggerListener;
 
 public class ScreenLocker extends RelativeLayout implements OnTouchListener{

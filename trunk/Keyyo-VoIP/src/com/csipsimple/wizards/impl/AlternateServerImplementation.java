@@ -19,7 +19,7 @@ package com.csipsimple.wizards.impl;
 
 import android.preference.EditTextPreference;
 
-import com.csipsimple.R;
+import com.keyyomobile.android.voip.R;
 
 public abstract class AlternateServerImplementation extends SimpleImplementation {
 	

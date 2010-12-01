@@ -36,7 +36,7 @@ import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.ToggleButton;
 
-import com.csipsimple.R;
+import com.keyyomobile.android.voip.R;
 import com.csipsimple.models.CallInfo;
 import com.csipsimple.service.MediaManager.MediaState;
 import com.csipsimple.utils.Log;

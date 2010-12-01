@@ -17,7 +17,7 @@
  */
 package com.csipsimple.wizards.impl;
 
-import com.csipsimple.R;
+import com.keyyomobile.android.voip.R;
 import com.csipsimple.models.Account;
 
 import android.text.InputType;

@@ -25,7 +25,7 @@ import android.preference.PreferenceActivity;
 import android.preference.PreferenceGroup;
 import android.preference.PreferenceScreen;
 
-import com.csipsimple.R;
+import com.keyyomobile.android.voip.R;
 import com.csipsimple.utils.Log;
 
 public abstract class GenericPrefs extends PreferenceActivity implements OnSharedPreferenceChangeListener {

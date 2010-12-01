@@ -30,7 +30,7 @@ import java.util.Map.Entry;
 
 import android.content.Context;
 
-import com.csipsimple.R;
+import com.keyyomobile.android.voip.R;
 import com.csipsimple.wizards.impl.Advanced;
 import com.csipsimple.wizards.impl.Basic;
 import com.csipsimple.wizards.impl.Callcentric;
