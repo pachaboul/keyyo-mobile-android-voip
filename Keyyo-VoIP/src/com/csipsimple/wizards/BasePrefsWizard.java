@@ -31,7 +31,7 @@ import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
 
-import com.csipsimple.R;
+import com.keyyomobile.android.voip.R;
 import com.csipsimple.db.DBAdapter;
 import com.csipsimple.models.Account;
 import com.csipsimple.service.ISipService;

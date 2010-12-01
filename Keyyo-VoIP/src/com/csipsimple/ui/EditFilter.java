@@ -31,7 +31,7 @@ import android.widget.EditText;
 import android.widget.Spinner;
 import android.widget.AdapterView.OnItemSelectedListener;
 
-import com.csipsimple.R;
+import com.keyyomobile.android.voip.R;
 import com.csipsimple.db.DBAdapter;
 import com.csipsimple.models.Filter;
 import com.csipsimple.models.Filter.RegExpRepresentation;

@@ -26,7 +26,7 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
-import com.csipsimple.R;
+import com.keyyomobile.android.voip.R;
 import com.csipsimple.utils.Log;
 
 public class IndicatorTab extends LinearLayout {

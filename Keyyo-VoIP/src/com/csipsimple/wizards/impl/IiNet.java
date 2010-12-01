@@ -22,7 +22,7 @@ import org.pjsip.pjsua.pjsua;
 
 import android.preference.ListPreference;
 
-import com.csipsimple.R;
+import com.keyyomobile.android.voip.R;
 import com.csipsimple.models.Account;
 import com.csipsimple.utils.PreferencesWrapper;
 

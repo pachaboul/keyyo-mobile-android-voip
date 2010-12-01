@@ -36,7 +36,7 @@ import android.widget.ListView;
 import android.widget.ResourceCursorAdapter;
 import android.widget.TextView;
 
-import com.csipsimple.R;
+import com.keyyomobile.android.voip.R;
 import com.csipsimple.db.DBAdapter;
 import com.csipsimple.models.Filter;
 import com.csipsimple.utils.Log;

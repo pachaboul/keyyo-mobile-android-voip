@@ -28,7 +28,7 @@ import org.pjsip.pjsua.pjsua;
 
 import android.preference.EditTextPreference;
 
-import com.csipsimple.R;
+import com.keyyomobile.android.voip.R;
 import com.csipsimple.models.Account;
 
 public abstract class AuthorizationImplementation extends BaseImplementation {

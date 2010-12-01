@@ -38,7 +38,7 @@ import android.widget.AdapterView;
 import android.widget.ImageView;
 import android.widget.ListView;
 
-import com.csipsimple.R;
+import com.keyyomobile.android.voip.R;
 
 public class DragnDropListView extends ListView {
     

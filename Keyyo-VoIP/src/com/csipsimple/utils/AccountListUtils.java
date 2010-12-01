@@ -24,7 +24,7 @@ import android.content.Context;
 import android.content.res.Resources;
 import android.os.RemoteException;
 
-import com.csipsimple.R;
+import com.keyyomobile.android.voip.R;
 import com.csipsimple.models.AccountInfo;
 import com.csipsimple.service.ISipService;
 

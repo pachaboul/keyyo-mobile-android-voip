@@ -27,7 +27,7 @@ import android.preference.Preference;
 import android.preference.PreferenceGroup;
 import android.preference.PreferenceScreen;
 
-import com.csipsimple.R;
+import com.keyyomobile.android.voip.R;
 import com.csipsimple.utils.Log;
 import com.csipsimple.utils.PreferencesWrapper;
 import com.csipsimple.wizards.BasePrefsWizard;

@@ -19,7 +19,7 @@ package com.csipsimple.utils;
 
 import java.util.Locale;
 
-import com.csipsimple.R;
+import com.keyyomobile.android.voip.R;
 import com.csipsimple.wizards.WizardUtils.WizardInfo;
 import com.csipsimple.wizards.impl.Ippi;
 import com.csipsimple.wizards.impl.Keyyo;
@@ -27,7 +27,7 @@ import com.csipsimple.wizards.impl.Keyyo;
 public class CustomDistribution {
 
 	// CSipSimple trunk distribution
-	
+	/*
 	public static boolean distributionWantsOtherAccounts() {
 		return true;
 	}
@@ -47,6 +47,7 @@ public class CustomDistribution {
 	public static String getRootPackage() {
 		return "com.csipsimple";
 	}
+	*/
 	
 	
 	//Ippi distribution
@@ -83,7 +84,7 @@ public class CustomDistribution {
 	
 	
 	//Keyyo distribution
-	/*
+	
 	public static boolean distributionWantsOtherAccounts() {
 		return true;
 	}
@@ -103,7 +104,9 @@ public class CustomDistribution {
 				Keyyo.class);
 		 
 	}
-	*/
+	public static String getRootPackage() {
+		return "com.csipsimple";
+	}
 	
 	
 }

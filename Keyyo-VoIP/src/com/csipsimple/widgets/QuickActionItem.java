@@ -35,7 +35,7 @@
 package com.csipsimple.widgets;
 
 
-import com.csipsimple.R;
+import com.keyyomobile.android.voip.R;
 
 import android.content.Context;
 import android.graphics.drawable.Drawable;

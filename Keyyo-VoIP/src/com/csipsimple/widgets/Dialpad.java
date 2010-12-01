@@ -31,7 +31,7 @@ import android.view.View.OnClickListener;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
 
-import com.csipsimple.R;
+import com.keyyomobile.android.voip.R;
 
 public class Dialpad extends LinearLayout implements OnClickListener {
 

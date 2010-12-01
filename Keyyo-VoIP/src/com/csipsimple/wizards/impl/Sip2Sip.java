@@ -22,7 +22,7 @@ import org.pjsip.pjsua.pjsua;
 
 import android.text.InputType;
 
-import com.csipsimple.R;
+import com.keyyomobile.android.voip.R;
 import com.csipsimple.models.Account;
 
 public class Sip2Sip extends SimpleImplementation {

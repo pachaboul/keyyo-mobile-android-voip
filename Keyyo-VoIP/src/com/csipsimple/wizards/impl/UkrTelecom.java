@@ -21,7 +21,7 @@ import org.pjsip.pjsua.pj_str_t;
 
 import android.text.InputType;
 
-import com.csipsimple.R;
+import com.keyyomobile.android.voip.R;
 import com.csipsimple.models.Account;
 
 public class UkrTelecom extends SimpleImplementation {

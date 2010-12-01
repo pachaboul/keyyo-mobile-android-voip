@@ -44,7 +44,7 @@ import android.widget.CompoundButton.OnCheckedChangeListener;
 import android.widget.SeekBar;
 import android.widget.SeekBar.OnSeekBarChangeListener;
 
-import com.csipsimple.R;
+import com.keyyomobile.android.voip.R;
 import com.csipsimple.models.CallInfo;
 import com.csipsimple.service.ISipConfiguration;
 import com.csipsimple.service.ISipService;

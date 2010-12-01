@@ -34,7 +34,7 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
-import com.csipsimple.R;
+import com.keyyomobile.android.voip.R;
 import com.csipsimple.db.DBAdapter;
 import com.csipsimple.models.Account;
 import com.csipsimple.models.CallInfo;

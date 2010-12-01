@@ -32,7 +32,7 @@ import android.widget.SimpleAdapter;
 import android.widget.TextView;
 import android.widget.SimpleAdapter.ViewBinder;
 
-import com.csipsimple.R;
+import com.keyyomobile.android.voip.R;
 import com.csipsimple.db.DBAdapter;
 import com.csipsimple.models.Account;
 import com.csipsimple.utils.Log;

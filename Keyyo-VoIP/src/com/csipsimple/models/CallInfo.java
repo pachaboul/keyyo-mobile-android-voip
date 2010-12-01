@@ -29,7 +29,7 @@ import android.os.Parcel;
 import android.os.Parcelable;
 import android.os.SystemClock;
 
-import com.csipsimple.R;
+import com.keyyomobile.android.voip.R;
 
 public class CallInfo implements Parcelable {
 

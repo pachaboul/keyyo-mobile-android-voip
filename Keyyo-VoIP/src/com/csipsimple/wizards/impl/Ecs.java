@@ -29,7 +29,7 @@ import org.pjsip.pjsua.pjsua;
 import android.preference.EditTextPreference;
 import android.text.TextUtils;
 
-import com.csipsimple.R;
+import com.keyyomobile.android.voip.R;
 import com.csipsimple.models.Account;
 
 public class Ecs extends BaseImplementation {

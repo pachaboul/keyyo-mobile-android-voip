@@ -17,7 +17,7 @@
  */
 package com.csipsimple.ui.help;
 
-import com.csipsimple.R;
+import com.keyyomobile.android.voip.R;
 
 import android.app.Activity;
 import android.os.Bundle;

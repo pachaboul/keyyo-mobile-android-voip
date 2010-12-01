@@ -17,7 +17,7 @@
  */
 package com.csipsimple.ui.prefs;
 
-import com.csipsimple.R;
+import com.keyyomobile.android.voip.R;
 import com.csipsimple.utils.PreferencesWrapper;
 
 
