@@ -137,6 +137,9 @@ public class SipNotifications {
 	}
 	
 	public void showNotificationForMessage(SipMessage msg) {
+		if(true) {
+			return;
+		}
 		//CharSequence tickerText = context.getText(R.string.instance_message);
 		if(!msg.getFrom().equalsIgnoreCase(viewingRemoteFrom)) {
 			String from = SipUri.getDisplayedSimpleUri(msg.getFrom());

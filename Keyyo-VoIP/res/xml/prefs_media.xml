@@ -55,7 +55,7 @@
 		
 		<PreferenceScreen android:title="@string/codecs" android:summary="@string/codecs_availability_text">
 			<intent android:action="android.intent.action.MAIN"
-                   android:targetPackage="com.csipsimple"
+                   android:targetPackage="com.keyyomobile.android.voip"
                    android:targetClass="com.csipsimple.ui.prefs.Codecs" ></intent>
 		</PreferenceScreen>
 		

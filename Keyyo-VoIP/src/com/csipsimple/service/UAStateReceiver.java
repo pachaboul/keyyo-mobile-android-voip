@@ -85,9 +85,12 @@ public class UAStateReceiver extends Callback {
 		//Check if we have not already an ongoing call
 		CallInfo existingOngoingCall = getActiveCallInProgress();
 		if(existingOngoingCall != null) {
-			//If there is an ongoing call... For now decline TODO : should here manage multiple calls
-			pjsua.call_hangup(callId, 0, null, null);
-			return;
+			if(existingOngoingCall.getCallState().equals(pjsip_inv_state.PJSIP_INV_STATE_CONFIRMED)) {
+				Log.e(THIS_FILE, "For now we do not support two call at the same time !!!");
+				//If there is an ongoing call... For now decline TODO : should here manage multiple calls
+				pjsua.call_hangup(callId, 0, null, null);
+				return;
+			}
 		}
 		
 		CallInfo callInfo = getCallInfo(callId);

@@ -167,7 +167,8 @@ public class SipHome extends TabActivity {
 
 		addTab(TAB_DIALER, getString(R.string.dial_tab_name_text), R.drawable.ic_tab_selected_dialer, R.drawable.ic_tab_unselected_dialer, dialerIntent);
 		addTab(TAB_CALLLOG, getString(R.string.calllog_tab_name_text), R.drawable.ic_tab_selected_recent, R.drawable.ic_tab_unselected_recent, calllogsIntent);
-		addTab(TAB_MESSAGES, getString(R.string.messages_tab_name_text), R.drawable.ic_tab_selected_messages, R.drawable.ic_tab_unselected_messages, messagesIntent);
+	//	addTab(TAB_MESSAGES, getString(R.string.messages_tab_name_text), R.drawable.ic_tab_selected_messages, R.drawable.ic_tab_unselected_messages, messagesIntent);
+		
 		
 		pickupContact = (ImageButton) findViewById(R.id.pickup_contacts);
 		pickupContact.setOnClickListener(new OnClickListener() {
@@ -177,6 +178,7 @@ public class SipHome extends TabActivity {
 				startActivityForResult(Compatibility.getContactPhoneIntent(), PICKUP_PHONE);
 			}
 		});
+		pickupContact.setVisibility(View.GONE);
 		
 		has_tried_once_to_activate_account = false;
 		
@@ -297,7 +299,7 @@ public class SipHome extends TabActivity {
 			}else if(SipService.ACTION_SIP_DIALER.equalsIgnoreCase(callAction)) {
 				getTabHost().setCurrentTab(0);
 			}else if(SipService.ACTION_SIP_MESSAGES.equalsIgnoreCase(callAction)) {
-				getTabHost().setCurrentTab(2);
+			//	getTabHost().setCurrentTab(2);
 			}
 		}
 	}
