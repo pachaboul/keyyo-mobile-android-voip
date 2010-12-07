@@ -1195,7 +1195,7 @@ public class SipService extends Service {
 			switch (account.transport) {
 			case Account.TRANSPORT_UDP:
 				if(udpTranportId != null) {
-			//		account.cfg.setTransport_id(udpTranportId);
+					account.cfg.setTransport_id(udpTranportId);
 				}
 				break;
 			case Account.TRANSPORT_TCP:
@@ -1662,12 +1662,13 @@ public class SipService extends Service {
 	public static File getStackLibFile(Context context) {
 		// Standard case
 		File standardOut = getGuessedStackLibFile(context);
-		
+		//If production .so file exists and app is not in debuggable mode 
+		//if debuggable we have to get the file from bundle dir
 		if (standardOut.exists() && !isDebuggableApp(context)) {
 			return standardOut;
 		}
 
-		// One target build
+		// Have a look if it's not a dev build
 		// TODO : find a clean way to access the libPath for one shot builds
 		File targetForBuild = new File(context.getFilesDir().getParent(), "lib" + File.separator + "libpjsipjni.so");
 		Log.d(THIS_FILE, "Search for " + targetForBuild.getAbsolutePath());
@@ -1684,7 +1685,7 @@ public class SipService extends Service {
 		
 	}
 
-	public static boolean isBundleStack(Context ctx) {
+	public static boolean hasBundleStack(Context ctx) {
 		File targetForBuild = new File(ctx.getFilesDir().getParent(), "lib" + File.separator + "libpjsipjni.so");
 		Log.d(THIS_FILE, "Search for " + targetForBuild.getAbsolutePath());
 		return targetForBuild.exists();

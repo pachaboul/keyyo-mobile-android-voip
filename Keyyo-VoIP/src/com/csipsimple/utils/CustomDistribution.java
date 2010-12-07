@@ -107,6 +107,10 @@ public class CustomDistribution {
 	public static String getRootPackage() {
 		return "com.csipsimple";
 	}
+
+	public static boolean distributionWantsOtherProviders() {
+		return false;
+	}
 	
 	
 }

@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PROJECT VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2010-11-27 23:52+0100\n"
+"POT-Creation-Date: 2010-12-04 18:58+0100\n"
 "PO-Revision-Date: 2010-10-06 13:32+0000\n"
 "Last-Translator: Jan Tschirschwitz <Unknown>\n"
 "Language-Team: de <LL@li.org>\n"
@@ -104,7 +104,8 @@ msgstr "Verwende UMTS"
 
 msgctxt "use_3g_disclamer"
 msgid "Your carrier MUST allow you to use this option"
-msgstr "Dein Provider MUSS die Verwendung von VoIP über UMTS/EDGE/GPRS erlauben"
+msgstr ""
+"Dein Provider MUSS die Verwendung von VoIP über UMTS/EDGE/GPRS erlauben"
 
 msgctxt "use_edge"
 msgid "Use EDGE"
@@ -419,7 +420,8 @@ msgid "Media quality"
 msgstr "Audioqualität"
 
 msgctxt "snd_media_quality_desc"
-msgid "Quality of the media stream (modify only if you know what you are doing)"
+msgid ""
+"Quality of the media stream (modify only if you know what you are doing)"
 msgstr ""
 "Qualität der Audiodaten (Verändere diesen Wert nur, wenn du weißt was du "
 "tust)"
@@ -490,6 +492,14 @@ msgstr ""
 
 msgctxt "sip_audio_mode_desc"
 msgid "Change only if developers advise you to"
+msgstr ""
+
+msgctxt "has_io_queue"
+msgid "IO Queue"
+msgstr ""
+
+msgctxt "has_io_queue_desc"
+msgid "Activate Queue for input/output"
 msgstr ""
 
 #. UI

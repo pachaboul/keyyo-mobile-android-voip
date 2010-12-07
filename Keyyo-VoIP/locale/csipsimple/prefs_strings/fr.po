@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PROJECT VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2010-11-27 23:52+0100\n"
+"POT-Creation-Date: 2010-12-04 18:58+0100\n"
 "PO-Revision-Date: 2010-10-10 08:22+0000\n"
 "Last-Translator: r3gis <r3gis@r3gis.fr>\n"
 "Language-Team: fr <LL@li.org>\n"
@@ -480,21 +480,28 @@ msgstr ""
 
 msgctxt "use_mode_api"
 msgid "Use Mode audio API"
-msgstr ""
+msgstr "Utiliser le Mode Audio API"
 
-#, fuzzy
 msgctxt "use_mode_api_desc"
 msgid "Try to enable that if audio is routing to speaker instead of earpiece"
 msgstr ""
-"Essayer d'activer cela si le son est sur le haut parleur au lieu de "
-"l'écouteur"
+"Essayez ce mode si le flux audio passe par le haut parleur en mode mains "
+"libres"
 
 msgctxt "sip_audio_mode"
 msgid "Audio mode for SIP calls"
-msgstr ""
+msgstr "Mode audio des appels SIP"
 
 msgctxt "sip_audio_mode_desc"
 msgid "Change only if developers advise you to"
+msgstr "Ne changer ceci que si les développeurs vous le conseillent"
+
+msgctxt "has_io_queue"
+msgid "IO Queue"
+msgstr ""
+
+msgctxt "has_io_queue_desc"
+msgid "Activate Queue for input/output"
 msgstr ""
 
 #. UI
