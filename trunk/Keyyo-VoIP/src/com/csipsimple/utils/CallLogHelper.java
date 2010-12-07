@@ -38,8 +38,6 @@ public class CallLogHelper {
 		ContentValues cv = new ContentValues();
 		String remoteContact = call.getRemoteContact();
 		
-		remoteContact = remoteContact.replaceAll("@.*\\.sip\\.internal", "@keyyo.net");
-		
 		cv.put(CallLog.Calls.NUMBER, remoteContact);
 		
 		cv.put(CallLog.Calls.NEW, (callStart > 0)?1:0);

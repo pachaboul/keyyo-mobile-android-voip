@@ -35,7 +35,7 @@
 				android:title="@string/snd_media_quality"
 				android:numeric="signed"
 				android:summary="@string/snd_media_quality_desc"
-				android:defaultValue="3"></EditTextPreference>
+				android:defaultValue="4"></EditTextPreference>
 				
 			<ListPreference android:title="@string/snd_clock_rate" android:key="snd_clock_rate"
 				android:summary="@string/snd_clock_rate_desc"
@@ -55,7 +55,7 @@
 		
 		<PreferenceScreen android:title="@string/codecs" android:summary="@string/codecs_availability_text">
 			<intent android:action="android.intent.action.MAIN"
-                   android:targetPackage="com.keyyomobile.android.voip"
+                   android:targetPackage="com.csipsimple"
                    android:targetClass="com.csipsimple.ui.prefs.Codecs" ></intent>
 		</PreferenceScreen>
 		

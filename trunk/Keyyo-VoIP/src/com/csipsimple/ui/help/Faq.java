@@ -31,7 +31,7 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 
 public class Faq extends Activity {
-	private final static String FAQ_URL = "http://code.google.com/p/csipsimple/wiki/FAQ#Summary";
+	private final static String FAQ_URL = "http://www.keyyomobile.com/voip/faq.htm";
 	
 	
 	@Override

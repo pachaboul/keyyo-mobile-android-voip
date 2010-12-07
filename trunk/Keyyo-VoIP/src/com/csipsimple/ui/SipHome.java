@@ -108,7 +108,7 @@ public class SipHome extends TabActivity {
 			startActivity(welcomeIntent);
 			finish();
 			return;
-		} else if (!SipService.isBundleStack(this)) {
+		} else if (!SipService.hasBundleStack(this)) {
 			// We have to check and save current version
 			try {
 				PackageInfo pinfo = getPackageManager().getPackageInfo(getPackageName(), 0);
@@ -338,7 +338,7 @@ public class SipHome extends TabActivity {
 	private void populateMenu(Menu menu) {
 		WizardInfo distribWizard = CustomDistribution.getCustomDistributionWizard();
 		if(distribWizard != null) {
-			menu.add(Menu.NONE, DISTRIB_ACCOUNT_MENU, Menu.NONE, "My " + distribWizard.label).setIcon(distribWizard.icon);
+			menu.add(Menu.NONE, DISTRIB_ACCOUNT_MENU, Menu.NONE, "Mon Keyyo VoIP").setIcon(distribWizard.icon);
 		}
 		if(CustomDistribution.distributionWantsOtherAccounts()) {
 			menu.add(Menu.NONE, ACCOUNTS_MENU, Menu.NONE, (distribWizard == null)?R.string.accounts:R.string.other_accounts).setIcon(R.drawable.ic_menu_accounts);
