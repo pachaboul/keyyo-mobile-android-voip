@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
-<manifest xmlns:android="http://schemas.android.com/apk/res/android" android:installLocation="auto"
-	android:versionName="0.00-15" android:versionCode="6" package="com.keyyomobile.android.voip">
+<manifest android:installLocation="auto"
+	android:versionName="0.00-16" android:versionCode="6" package="com.keyyomobile.android.voip" xmlns:android="http://schemas.android.com/apk/res/android">
 	<supports-screens android:smallScreens="true" 
 		android:normalScreens="true"
 		android:largeScreens="true"
 		/>
-	<application android:debuggable="true" android:icon="@drawable/ic_wizard_keyyo" android:label="Keyyo-VoIP">
-		<activity android:label="Keyyo-VoIP" android:name="com.csipsimple.ui.SipHome" android:launchMode="singleTask"
+	<application android:icon="@drawable/ic_wizard_keyyo" android:label="Keyyo VoIP" android:debuggable="false">
+		<activity android:label="Keyyo VoIP" android:name="com.csipsimple.ui.SipHome" android:launchMode="singleTask"
 			android:screenOrientation="portrait" android:configChanges="orientation"
 			android:theme="@android:style/Theme.NoTitleBar">
 			<intent-filter>
