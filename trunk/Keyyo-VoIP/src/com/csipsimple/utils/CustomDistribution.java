@@ -19,10 +19,9 @@ package com.csipsimple.utils;
 
 import java.util.Locale;
 
-import com.keyyomobile.android.voip.R;
 import com.csipsimple.wizards.WizardUtils.WizardInfo;
-import com.csipsimple.wizards.impl.Ippi;
 import com.csipsimple.wizards.impl.Keyyo;
+import com.keyyomobile.android.voip.R;
 
 public class CustomDistribution {
 
@@ -84,13 +83,12 @@ public class CustomDistribution {
 	
 	
 	//Keyyo distribution
-	
 	public static boolean distributionWantsOtherAccounts() {
 		return true;
 	}
 	
 	public static String getSupportEmail() {
-		return "support@keyyo.net";
+		return null;
 	}
 	
 	public static String getUserAgent() {
@@ -104,12 +102,21 @@ public class CustomDistribution {
 				Keyyo.class);
 		 
 	}
+
 	public static String getRootPackage() {
 		return "com.csipsimple";
 	}
 
 	public static boolean distributionWantsOtherProviders() {
 		return false;
+	}
+
+	public static boolean showIssueList() {
+		return false;
+	}
+
+	public static String getFaqLink() {
+		return "http://www.keyyomobile.com/voip/faq.htm";
 	}
 	
 	

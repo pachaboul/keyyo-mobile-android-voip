@@ -138,6 +138,7 @@
         <receiver android:name="com.csipsimple.service.HeadsetButtonReceiver"></receiver>
 		
 		<!-- Widget -->
+		<!-- 
 		<receiver android:name="com.csipsimple.widgets.AccountWidgetProvider" android:label="@string/gadget_title">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
@@ -151,7 +152,7 @@
 		        <action android:name="android.appwidget.action.APPWIDGET_CONFIGURE" />
 		    </intent-filter>
 		</activity>
-		
+		 -->
 		
 		<!-- Messages -->
 		<activity android:name="com.csipsimple.ui.messages.ConversationList" android:theme="@android:style/Theme.NoTitleBar" android:configChanges="orientation"/>

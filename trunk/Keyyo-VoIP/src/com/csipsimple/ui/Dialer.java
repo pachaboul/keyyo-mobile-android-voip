@@ -149,6 +149,10 @@ public class Dialer extends Activity implements OnClickListener, OnLongClickList
 		rootView = (View) findViewById(R.id.toplevel);
 		accountChooserButton = (AccountChooserButton) findViewById(R.id.accountChooserButton);
 
+		
+		ImageButton bt = (ImageButton) findViewById(R.id.domainButton);
+		bt.setEnabled(false);
+		
 		isDigit = prefsWrapper.startIsDigit();
 		digitDialer.setVisibility(isDigit ? View.VISIBLE : View.GONE);
 		textDialer.setVisibility(isDigit ? View.GONE : View.VISIBLE);
@@ -399,7 +403,7 @@ public class Dialer extends Activity implements OnClickListener, OnLongClickList
 		}
 		case R.id.domainButton: {
 			// b.playSoundEffect(SoundEffectConstants.CLICK);
-			flipView(true);
+		//	flipView(true);
 			break;
 		}
 		case R.id.domainTextButton: {
