@@ -150,9 +150,6 @@ public class Dialer extends Activity implements OnClickListener, OnLongClickList
 		accountChooserButton = (AccountChooserButton) findViewById(R.id.accountChooserButton);
 
 		
-		ImageButton bt = (ImageButton) findViewById(R.id.domainButton);
-		bt.setEnabled(false);
-		
 		isDigit = prefsWrapper.startIsDigit();
 		digitDialer.setVisibility(isDigit ? View.VISIBLE : View.GONE);
 		textDialer.setVisibility(isDigit ? View.GONE : View.VISIBLE);
@@ -402,8 +399,23 @@ public class Dialer extends Activity implements OnClickListener, OnLongClickList
 			break;
 		}
 		case R.id.domainButton: {
-			// b.playSoundEffect(SoundEffectConstants.CLICK);
-		//	flipView(true);
+			if(service != null) {
+				Integer accountToUse = USE_GSM;
+				String toCall = "123";
+				Account acc = accountChooserButton.getSelectedAccount();
+				if (acc != null) {
+					accountToUse = acc.id;
+				}
+				if (TextUtils.isEmpty(toCall)) {
+					return;
+				}
+				
+				try {
+					service.makeCall(toCall, accountToUse);
+				} catch (RemoteException e) {
+					Log.e(THIS_FILE, "Service can't be called to make the call");
+				}
+			}
 			break;
 		}
 		case R.id.domainTextButton: {
