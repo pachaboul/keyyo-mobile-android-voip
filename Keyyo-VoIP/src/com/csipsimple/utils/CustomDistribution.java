@@ -88,11 +88,11 @@ public class CustomDistribution {
 	}
 	
 	public static String getSupportEmail() {
-		return null;
+		return "apps-support@keyyomobile.com";
 	}
 	
 	public static String getUserAgent() {
-		return "CSipSimple";
+		return "keyyo-voip-android";
 	}
 	
 	public static WizardInfo getCustomDistributionWizard() {
