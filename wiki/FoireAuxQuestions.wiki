@@ -1,5 +1,6 @@
 #summary Page d'aide de l'application Keyyo VoIP
-#sidebar TableOfContents
+<wiki:toc max_depth="1" />
+
 
 = Introduction =
 
