@@ -1,4 +1,5 @@
 #summary Page d'aide de l'application Keyyo VoIP
+#sidebar TableOfContents
 
 = Introduction =
 
