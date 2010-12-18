@@ -6,9 +6,11 @@ Cette foire aux question a pour but de rassembler le maximum d'unformation conce
 
 = Quels sont les mobiles supportés =
 Les mobiles supportés sont
-  * Mobile 1
-  * Mobile 2
-  * Mobile 3
+  * HTC Desire HD
+  * Samsung Galaxy S
+  * Samsung Galaxy Teos
+
+En théorie, tout téléphone doté d'Android 1.6 minimum supporte l'application Keyyo VoIP. Le support exact peut être différent en fonction des constructeurs.
 
 = Puis-je utiliser l'application en 3G =
 
@@ -17,3 +19,33 @@ L'application ne fonctionnera pas sur réseau mobile (3G/Edge) du fait de limita
 = Comment utiliser mon compte SIP / VoIP =
 
 Rendez vous sur votre espace client Keyyo Mobile, les instructions détaillées s'y trouvent
+
+= Comment passer un appel SIP / VoIP ? =
+
+Dès que vous avez une connexion Wi-Fi disponible et que l'icône représentant un téléphone doté de la mention IP est visible dans la barre de notification, vous êtes en mesure de passer un appel VoIP.
+
+Composer alors normalement votre numéro ou choisissez un contact. Juste avant de composer ce numéro, le mobile vous demandera par quel canal passer : VoIP ou GSM.
+
+= Je dois faire le 0 pour sortir =
+Dans les offres Keyyo Centrex, vous devez ajouter le 0 pour sortir avant de composer le numéro. Ce mode de fonctionnement n'est pas compatible avec le GSM.
+
+Pour utiliser votre carnet d'adresse de manière indifférente sur le mobile et en VoIP, vous avez 2 solutions :
+  # Préfixer tous vos numéro par le code du pays. Par exemple +33 pour la France
+  # Ajouter un filtre dans les réglages de l'application Keyyo VoIP pour ajouter le 0 automatiquement
+
+= Ajouter un filtre dans l'application Keyyo VoIP =
+Les filtres sont applicables par compte. Par exemple, si vous utilisez une offre Keyyo Centrex et une offre Keyyo Home au sein de la même application, vous devez composer le 0 pour sortir avec l'offre Keyyo Centrex.
+
+Pour ajouter automatiquement le 0 sans avoir à le composer à chaque fois, réalisez les opérations suivantes
+  * Ouvrez l'application Keyyo VoIP
+  * Depuis l'écran principal, suivez le parcours suivant
+  * _Touche Menu > Gestion des comptes > Compte Keyyo Centrex_
+  * Une fois dans les détails du compte, réalisez les manipulation suivantes
+  * _Touche Menu > Filtres > Nouveau filtre_
+
+Le filtre a créer aura les propriétés suivantes
+  * Filtre de réécriture
+  * Numéro commençant par 0
+  * Règle : préfixer avec 0
+
+Vous pourrez alors composer le numéro 01 82 83 28 28 de manière indifférente avec vous 2 comptes. Keyyo VoIP aujoutera automatiquement un 0 pour une utilisation avec le compte Keyyo Centrex
