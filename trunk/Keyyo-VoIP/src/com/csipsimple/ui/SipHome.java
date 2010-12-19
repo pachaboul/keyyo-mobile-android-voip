@@ -45,8 +45,9 @@ import android.widget.TabHost.TabSpec;
 import android.widget.Toast;
 
 import com.keyyomobile.android.voip.R;
+import com.csipsimple.api.SipManager;
+import com.csipsimple.api.SipProfile;
 import com.csipsimple.db.DBAdapter;
-import com.csipsimple.models.Account;
 import com.csipsimple.service.SipService;
 import com.csipsimple.ui.help.Help;
 import com.csipsimple.ui.messages.ConversationList;
@@ -169,7 +170,6 @@ public class SipHome extends TabActivity {
 		addTab(TAB_CALLLOG, getString(R.string.calllog_tab_name_text), R.drawable.ic_tab_selected_recent, R.drawable.ic_tab_unselected_recent, calllogsIntent);
 	//	addTab(TAB_MESSAGES, getString(R.string.messages_tab_name_text), R.drawable.ic_tab_selected_messages, R.drawable.ic_tab_unselected_messages, messagesIntent);
 		
-		
 		pickupContact = (ImageButton) findViewById(R.id.pickup_contacts);
 		pickupContact.setOnClickListener(new OnClickListener() {
 			@Override
@@ -198,14 +198,14 @@ public class SipHome extends TabActivity {
 		Thread t = new Thread() {
 			public void run() {
 				startService(serviceIntent);
-				postStart();
+				postStartSipService();
 			};
 		};
 		t.start();
 
 	}
-
-	private void postStart() {
+	
+	private void postStartSipService() {
 		// If we have never set fast settings
 		if (!prefWrapper.hasAlreadySetup()) {
 			/*
@@ -220,7 +220,7 @@ public class SipHome extends TabActivity {
 
 		// If we have no account yet, open account panel,
 		if (!has_tried_once_to_activate_account) {
-			Account account = null;
+			SipProfile account = null;
 			DBAdapter db = new DBAdapter(this);
 			db.open();
 			int nbrOfAccount = db.getNbrOfAccount();
@@ -237,9 +237,9 @@ public class SipHome extends TabActivity {
 			if(nbrOfAccount == 0) {
 				Intent accountIntent = null;
 				if(account != null) {
-					if(account.id == null || account.id == Account.INVALID_ID) {
+					if(account.id == SipProfile.INVALID_ID) {
 						accountIntent = new Intent(this, BasePrefsWizard.class);
-						accountIntent.putExtra(Account.FIELD_WIZARD, account.wizard);
+						accountIntent.putExtra(SipProfile.FIELD_WIZARD, account.wizard);
 						startActivity(new Intent(this, AccountsList.class));
 					}
 				}else {
@@ -309,11 +309,11 @@ public class SipHome extends TabActivity {
 	private void selectTabWithAction(Intent intent) {
 		if(intent != null) {
 			String callAction = intent.getAction();
-			if(SipService.ACTION_SIP_CALLLOG.equalsIgnoreCase(callAction)) {
+			if(SipManager.ACTION_SIP_CALLLOG.equalsIgnoreCase(callAction)) {
 				getTabHost().setCurrentTab(1);
-			}else if(SipService.ACTION_SIP_DIALER.equalsIgnoreCase(callAction)) {
+			}else if(SipManager.ACTION_SIP_DIALER.equalsIgnoreCase(callAction)) {
 				getTabHost().setCurrentTab(0);
-			}else if(SipService.ACTION_SIP_MESSAGES.equalsIgnoreCase(callAction)) {
+			}else if(SipManager.ACTION_SIP_MESSAGES.equalsIgnoreCase(callAction)) {
 			//	getTabHost().setCurrentTab(2);
 			}
 		}
@@ -380,7 +380,7 @@ public class SipHome extends TabActivity {
 
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
-		Account account;
+		SipProfile account;
 		switch (item.getItemId()) {
 		case ACCOUNTS_MENU:
 			startActivity(new Intent(this, AccountsList.class));
@@ -424,10 +424,10 @@ public class SipHome extends TabActivity {
 			db.close();
 			
 			Intent it = new Intent(this, BasePrefsWizard.class);
-			if(account.id != null) {
+			if(account.id != SipProfile.INVALID_ID) {
 				it.putExtra(Intent.EXTRA_UID,  (int) account.id);
 			}
-			it.putExtra(Account.FIELD_WIZARD, account.wizard);
+			it.putExtra(SipProfile.FIELD_WIZARD, account.wizard);
 			startActivityForResult(it, REQUEST_EDIT_DISTRIBUTION_ACCOUNT);
 			
 			return true;
