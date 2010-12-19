@@ -31,6 +31,7 @@ import java.util.Set;
 import android.content.Context;
 
 import com.keyyomobile.android.voip.R;
+import com.csipsimple.api.SipProfile;
 import com.csipsimple.utils.CustomDistribution;
 import com.csipsimple.wizards.impl.Advanced;
 import com.csipsimple.wizards.impl.Basic;
@@ -40,13 +41,14 @@ import com.csipsimple.wizards.impl.Ekiga;
 import com.csipsimple.wizards.impl.Eutelia;
 import com.csipsimple.wizards.impl.Expert;
 import com.csipsimple.wizards.impl.Freephonie;
+import com.csipsimple.wizards.impl.Gizmo5;
 import com.csipsimple.wizards.impl.IiNet;
 import com.csipsimple.wizards.impl.Ip2Mobile;
 import com.csipsimple.wizards.impl.IpTel;
 import com.csipsimple.wizards.impl.Ippi;
 import com.csipsimple.wizards.impl.Keyyo;
 import com.csipsimple.wizards.impl.Local;
-import com.csipsimple.wizards.impl.MagicJack;
+import com.csipsimple.wizards.impl.NexGenTel;
 import com.csipsimple.wizards.impl.OnSip;
 import com.csipsimple.wizards.impl.Pbxes;
 import com.csipsimple.wizards.impl.Pennytel;
@@ -55,6 +57,7 @@ import com.csipsimple.wizards.impl.PlanetPhone;
 import com.csipsimple.wizards.impl.Sip2Sip;
 import com.csipsimple.wizards.impl.SipSorcery;
 import com.csipsimple.wizards.impl.Sipgate;
+import com.csipsimple.wizards.impl.Speakezi;
 import com.csipsimple.wizards.impl.UkrTelecom;
 import com.csipsimple.wizards.impl.VPhone;
 
@@ -216,14 +219,24 @@ public class WizardUtils {
 					R.drawable.ic_wizard_pennytel, 10, 
 					new Locale[]{new Locale("EN", "au")}, false, false, 
 					Pennytel.class));
+			/*
 			WIZARDS_DICT.put("MAGICJACK", new WizardInfo("MAGICJACK", "MagicJack", 
 					R.drawable.ic_wizard_magicjack, 20, 
 					new Locale[]{ Locale.US, Locale.CANADA}, false, false, 
 					MagicJack.class));
+					*/
 			WIZARDS_DICT.put("ONSIP", new WizardInfo("ONSIP", "OnSIP", 
-					R.drawable.ic_wizard_onsip, 15, 
+					R.drawable.ic_wizard_onsip, 30, 
 					new Locale[]{ Locale.US}, false, false, 
 					OnSip.class));
+			WIZARDS_DICT.put("GIZMO5", new WizardInfo("GIZMO5", "Gizmo5", 
+					R.drawable.ic_wizard_gizmo5, 15, 
+					new Locale[]{ Locale.US}, false, false, 
+					Gizmo5.class));
+			WIZARDS_DICT.put("NEXGENTEL", new WizardInfo("NEXGENTEL", "NGeen", 
+					R.drawable.ic_wizard_ngeen, 20, 
+					new Locale[]{ Locale.US}, false, false, 
+					NexGenTel.class));
 			WIZARDS_DICT.put("IINET", new WizardInfo("IINET", "iinet", 
 					R.drawable.ic_wizard_iinet, 5, 
 					new Locale[]{new Locale("EN", "au")}, false, false, 
@@ -240,6 +253,11 @@ public class WizardUtils {
 					R.drawable.ic_wizard_ip2mobile, 10, 
 					new Locale[]{new Locale("DK", "dk")}, false, false, 
 					Ip2Mobile.class));
+			WIZARDS_DICT.put("SPEAKEZI", new WizardInfo("SPEAKEZI", "Speakezi Telecoms", 
+					R.drawable.ic_wizard_speakezi, 30, 
+					new Locale[] {new Locale("EN", "za"), new Locale("AF", "za")}, false, false, 
+					Speakezi.class));
+			
 		}else {
 			WizardInfo info = CustomDistribution.getCustomDistributionWizard();
 			WIZARDS_DICT.put(info.id, info);
@@ -296,6 +314,11 @@ public class WizardUtils {
 			}
 		}
 		return R.drawable.ic_launcher_phone;
+	}
+	
+
+	public static int getWizardIconRes(SipProfile account) {
+		return WizardUtils.getWizardIconRes(account.wizard);
 	}
 
 
@@ -375,6 +398,7 @@ public class WizardUtils {
 		result.add(others_list);
 		return result;
 	}
+
 	
 	
 	

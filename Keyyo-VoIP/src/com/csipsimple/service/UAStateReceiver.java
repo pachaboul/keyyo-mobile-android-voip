@@ -55,10 +55,12 @@ import android.telephony.TelephonyManager;
 import android.text.format.DateFormat;
 
 import com.keyyomobile.android.voip.R;
+import com.csipsimple.api.SipManager;
+import com.csipsimple.api.SipProfile;
 import com.csipsimple.db.DBAdapter;
-import com.csipsimple.models.Account;
 import com.csipsimple.models.CallInfo;
 import com.csipsimple.models.CallInfo.UnavailableException;
+import com.csipsimple.models.Filter;
 import com.csipsimple.models.SipMessage;
 import com.csipsimple.utils.CallLogHelper;
 import com.csipsimple.utils.Compatibility;
@@ -144,7 +146,7 @@ public class UAStateReceiver extends Callback {
 		database.close();
 		
 		//Broadcast the message
-		Intent intent = new Intent(SipService.ACTION_SIP_MESSAGE_RECEIVED);
+		Intent intent = new Intent(SipManager.ACTION_SIP_MESSAGE_RECEIVED);
 		//TODO : could be parcelable !
 		intent.putExtra(SipMessage.FIELD_FROM, msg.getFrom());
 		intent.putExtra(SipMessage.FIELD_BODY, msg.getBody());
@@ -170,7 +172,7 @@ public class UAStateReceiver extends Callback {
 		database.close();
 		
 		//Broadcast the information
-		Intent intent = new Intent(SipService.ACTION_SIP_MESSAGE_RECEIVED);
+		Intent intent = new Intent(SipManager.ACTION_SIP_MESSAGE_RECEIVED);
 		intent.putExtra(SipMessage.FIELD_FROM, sTo);
 		service.sendBroadcast(intent);
 	}
@@ -374,7 +376,7 @@ public class UAStateReceiver extends Callback {
 				((SipService) service).updateRegistrationsState();
 				// Send a broadcast message that for an account
 				// registration state has changed
-				Intent regStateChangedIntent = new Intent(SipService.ACTION_SIP_REGISTRATION_CHANGED);
+				Intent regStateChangedIntent = new Intent(SipManager.ACTION_SIP_REGISTRATION_CHANGED);
 				service.sendBroadcast(regStateChangedIntent);
 				break;
 			}
@@ -415,7 +417,7 @@ public class UAStateReceiver extends Callback {
 		//Auto answer feature
 		boolean shouldAutoAnswer = false;
 		//In account
-		Account acc = service.getAccountForPjsipId(accountId);
+		SipProfile acc = service.getAccountForPjsipId(accountId);
 		if(acc != null) {
 			Pattern p = Pattern.compile("^(?:\")?([^<\"]*)(?:\")?[ ]*(?:<)?sip(?:s)?:([^@]*@[^>]*)(?:>)?", Pattern.CASE_INSENSITIVE);
 			Matcher m = p.matcher(remContact);
@@ -424,7 +426,7 @@ public class UAStateReceiver extends Callback {
 				number = m.group(2);
 			}
 			Log.w(THIS_FILE, "Search if should auto answer : "+number);
-			shouldAutoAnswer = acc.isAutoAnswerNumber(number, service.db);
+			shouldAutoAnswer = Filter.isAutoAnswerNumber(acc, number, service.db);
 		}
 		//Or by api
 		if (autoAcceptCurrent || shouldAutoAnswer) {
@@ -511,8 +513,8 @@ public class UAStateReceiver extends Callback {
 
 	private void onBroadcastCallState(final CallInfo callInfo) {
 		//Internal event
-		Intent callStateChangedIntent = new Intent(SipService.ACTION_SIP_CALL_CHANGED);
-		callStateChangedIntent.putExtra(SipService.EXTRA_CALL_INFO, callInfo);
+		Intent callStateChangedIntent = new Intent(SipManager.ACTION_SIP_CALL_CHANGED);
+		callStateChangedIntent.putExtra(SipManager.EXTRA_CALL_INFO, callInfo);
 		service.sendBroadcast(callStateChangedIntent);
 		
 		
@@ -537,8 +539,8 @@ public class UAStateReceiver extends Callback {
 	private synchronized void launchCallHandler(CallInfo currentCallInfo2) {
 		
 		// Launch activity to choose what to do with this call
-		Intent callHandlerIntent = new Intent(SipService.ACTION_SIP_CALL_UI); //new Intent(service, getInCallClass());
-		callHandlerIntent.putExtra(SipService.EXTRA_CALL_INFO, currentCallInfo2);
+		Intent callHandlerIntent = new Intent(SipManager.ACTION_SIP_CALL_UI); //new Intent(service, getInCallClass());
+		callHandlerIntent.putExtra(SipManager.EXTRA_CALL_INFO, currentCallInfo2);
 		callHandlerIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_SINGLE_TOP  );
 		
 		Log.d(THIS_FILE, "Anounce call activity");

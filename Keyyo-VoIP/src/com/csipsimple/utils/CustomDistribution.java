@@ -54,7 +54,11 @@ public class CustomDistribution {
 	public static boolean distributionWantsOtherAccounts() {
 		return true;
 	}
-	
+
+	public static boolean distributionWantsOtherProviders() {
+		return false;
+	}
+
 	public static String getSupportEmail() {
 		return "support@ippi.fr";
 	}
@@ -104,7 +108,7 @@ public class CustomDistribution {
 	}
 
 	public static String getRootPackage() {
-		return "com.csipsimple";
+		return "com.keyyomobile.android.voip";
 	}
 
 	public static boolean distributionWantsOtherProviders() {
