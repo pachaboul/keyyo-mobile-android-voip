@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest android:installLocation="auto"
-	android:versionName="0.00-16-01" android:versionCode="7" package="com.keyyomobile.android.voip" 
+	android:versionName="0.00-17" android:versionCode="21" package="com.keyyomobile.android.voip" 
 	xmlns:android="http://schemas.android.com/apk/res/android">
 	<supports-screens android:smallScreens="true" 
 		android:normalScreens="true"
