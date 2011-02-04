@@ -10,11 +10,12 @@
   <string-array name="filters_type">
     <item>Commence avec</item>
     <item>Fini avec</item>
+    <item>Contient</item>
     <item>Tous</item>
-    <item>A exactement N digit</item>
-    <item>A plus de N digit</item>
+    <item>A exactement N chiffre(s)</item>
+    <item>A plus de N chiffre(s)</item>
     <item>Est exactement</item>
-    <item>Expression rationnelle personalisée</item>
+    <item>RegExp personnalisée</item>
   </string-array>
   <string-array name="replace_type">
     <item>Préfixé avec</item>

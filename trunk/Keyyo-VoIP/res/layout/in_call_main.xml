@@ -35,10 +35,9 @@
 			android:orientation="vertical"
 			android:layout_width="fill_parent" 
 			android:layout_height="fill_parent"
-			android:paddingBottom="170px"
+			android:paddingBottom="170dip"
 			
-			android:visibility="gone"
-			>
+			android:visibility="gone" >
 				<EditText android:id="@+id/digitsText" 
 					android:layout_width="fill_parent"
 					android:layout_height="wrap_content" android:maxLines="1" android:scrollHorizontally="true"

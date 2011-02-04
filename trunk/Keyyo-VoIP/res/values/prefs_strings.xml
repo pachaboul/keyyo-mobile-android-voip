@@ -10,6 +10,9 @@
 <string name="prefs_media_desc">Codecs and in-call sound behavior</string>
 <string name="prefs_ui">User interface</string>
 <string name="prefs_ui_desc">Tweak the user interface</string>
+<string name="prefs_calls">Calls options</string>
+<string name="prefs_calls_desc">Options related to calls</string>
+
 
 <!-- Network -->
 <string name="for_incomings">For incoming calls</string>
@@ -59,12 +62,15 @@
 <string name="turn_server_desc">TURN server (HOST:PORT)</string>
 <string name="enable_stun">Enable STUN</string>
 <string name="enable_stun_desc">Turn on STUN feature</string>
-<string name="stun_server">STUN server</string>
-<string name="stun_server_desc">STUN server (HOST:PORT)</string>
+<string name="stun_server">STUN servers</string>
+<string name="stun_server_desc">STUN servers (HOST[:PORT], ...)</string>
 <string name="enable_qos">Enable QoS</string>
 <string name="enable_qos_desc">Enable QoS on packets</string>
 <string name="dscp_val">DSCP value</string>
 <string name="dscp_val_desc">DSCP value for SIP traffic</string>
+<string name="keep_alive_interval_wifi">Wifi keep alive</string>
+<string name="keep_alive_interval_mobile">Mobile keep alive</string>
+<string name="keep_alive_interval_desc">Interval (sec) for KA packets</string>
 
 <!-- Security -->
 <string name="tls">TLS</string>
@@ -119,6 +125,8 @@
 <string name="snd_ptime_desc">Specifying lower ptime will normally reduce the latency</string>
 <string name="echo_cancellation_tail">Echo cancellation tail</string>
 <string name="echo_cancellation_tail_desc">Tail length of echo cancellation</string>
+<string name="echo_mode">Echo mode</string>
+<string name="echo_mode_desc">Algorithm for echo</string>
 <string name="codecs_desc">Priority (0 is disabled)</string>
 <string name="sip_dtmf">DTMF mode</string>
 <string name="sip_dtmf_desc">How to send DTMF</string>
@@ -134,6 +142,14 @@
 <string name="has_io_queue_desc">Activate Queue for input/output</string>
 <string name="set_audio_generate_tone">Tone hack</string>
 <string name="set_audio_generate_tone_desc">Generate a tone before making calls</string>
+<string name="narrow_band">Narrowband</string>
+<string name="wide_band">Wideband</string>
+<string name="band_for_wifi">Band type for wifi</string>
+<string name="band_for_3g">Band type for 3G</string>
+<string name="band_for_gprs">Band type for GPRS</string>
+<string name="band_for_edge">Band type for EDGE</string>
+<string name="band_for_other">Band type for other</string>
+<string name="codecs_band_types">Connections bandwidth types for codecs</string>
 
 <!-- UI -->
 <string name="general_ui">General user interface</string>
@@ -164,8 +180,10 @@
 <string name="ringtone_desc">Default ringtone for SIP calls</string>
 <string name="prevent_screen_rotation">Prevent screen rotation</string>
 <string name="prevent_screen_rotation_desc">Avoid rotation of the screen and keep in portrait mode</string>
-<string name="gsm_integration_type">Integration type with GSM</string>
-<string name="gsm_integration_type_desc">How CSipSimple use GSM (or not)</string>
+<string name="gsm_integration_type">Mobile phone integration</string>
+<string name="gsm_integration_type_desc">How the application uses your mobile phone (or not)</string>
+<string name="invert_proximity_sensor">Invert proximity sensor</string>
+<string name="invert_proximity_sensor_desc">May help on some devices when manufacturer inverted near and far</string>
 
 <!-- Fast settings -->
 <string name="android_integration">Integrate with Android</string>
@@ -182,6 +200,11 @@
 <string name="tg_allowed_desc">Your carrier allows VoIP over your mobile data connection</string>
 
 <string name="codecs_availability_text">Only available if sip is currently registered</string>
+
+
+<!-- Calls settings -->
+<string name="auto_record_calls">Auto record calls</string>
+<string name="auto_record_calls_desc">Record calls as soon as connected</string>
 
 <string name="expert_preferences">Expert mode</string>
 <string name="advanced_preferences">Advanced mode</string>

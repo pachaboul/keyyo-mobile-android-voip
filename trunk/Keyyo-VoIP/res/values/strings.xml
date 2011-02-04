@@ -42,6 +42,8 @@
 	<string name="missed_call">Missed call</string>
 	<string name="recentCalls_empty">No Call Logs</string>
 	<string name="filters">Filters</string>
+	<string name="filters_desc">To apply when integration to Android is used</string>
+	<string name="filters_for">Filters for</string>
 	<string name="add_filter">Add filter / rewrite rule</string>
 	<string name="delete_filter">Delete filter</string>
 	<string name="callLog_delete_entry">Delete this call</string>
@@ -58,6 +60,8 @@
 	<string name="service_ticker_registered_text">SIP Registered</string>
 	<string name="outgoing_call_chooser_call_text">Call</string>
 	<string name="reorder">Reorder</string>
+	<string name="backup_restore">Backup / Restore</string>
+	<string name="backup">Backup</string>
 	<string name="faq">FAQ</string>
 	<string name="help">Help</string>	
 	<string name="record_logs">Record logs to send it to dev team and report a bug</string>
@@ -78,4 +82,5 @@
 	<string name="no_phone_found">No phone found for this contact</string>
 	<string name="show_password">Show password</string>
 	<string name="this_codec_is_not_free">**This codec is not free !!!**\nPlease ensure that somebody (your SIP provider or yourself) have purchased a license that allow you to use this codec! We (as application distributors) are not responsible for an illegal use of this codec.\nIt\'s up to you to be sure that you are authorized to use this codec.\nPurchase link : </string>
+	<string name="voice_mail">Voice mail</string>
 </resources>
