@@ -15,5 +15,36 @@
  *  You should have received a copy of the GNU General Public License
  *  along with CSipSimple.  If not, see <http://www.gnu.org/licenses/>.
  */
-package com.csipsimple.models;
-parcelable IAccount;
+package com.csipsimple.ui.prefs;
+
+import com.keyyomobile.android.voip.R;
+import com.csipsimple.utils.PreferencesWrapper;
+
+
+public class PrefsCalls extends GenericPrefs {
+
+
+	@Override
+	protected int getXmlPreferences() {
+		return R.xml.prefs_calls;
+	}
+
+	@Override
+	protected void afterBuildPrefs() {
+		super.afterBuildPrefs();
+		PreferencesWrapper pfw = new PreferencesWrapper(this);
+		if(!pfw.isAdvancedUser()) {
+			
+			
+		}
+	}
+	
+	
+	@Override
+	protected void updateDescriptions() {
+		
+	}
+
+
+	
+}

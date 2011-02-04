@@ -20,8 +20,6 @@ package com.csipsimple.ui;
 
 import java.util.List;
 
-import org.pjsip.pjsua.pjsip_status_code;
-
 import android.app.ListActivity;
 import android.content.BroadcastReceiver;
 import android.content.ComponentName;
@@ -44,12 +42,12 @@ import android.widget.ListView;
 import android.widget.TextView;
 
 import com.keyyomobile.android.voip.R;
+import com.csipsimple.api.SipProfileState;
 import com.csipsimple.api.SipManager;
 import com.csipsimple.api.SipProfile;
 import com.csipsimple.db.AccountAdapter;
 import com.csipsimple.db.DBAdapter;
-import com.csipsimple.models.AccountInfo;
-import com.csipsimple.service.ISipService;
+import com.csipsimple.api.ISipService;
 import com.csipsimple.service.SipService;
 import com.csipsimple.utils.Log;
 
@@ -121,8 +119,7 @@ public class CallLog extends ListActivity {
 
         
 		Intent sipService = new Intent(this, SipService.class);
-		//Start service and bind it
-		startService(sipService);
+		//Bind the service
 		bindService(sipService, connection, Context.BIND_AUTO_CREATE);
 		registerReceiver(regStateReceiver, new IntentFilter(SipManager.ACTION_SIP_REGISTRATION_CHANGED));
     }
@@ -136,8 +133,12 @@ public class CallLog extends ListActivity {
 	@Override
 	protected void onDestroy() {
 		super.onDestroy();
-		unbindService(connection);
-		unregisterReceiver(regStateReceiver);
+		try {
+			unbindService(connection);
+		}catch(Exception e) {}
+		try {
+			unregisterReceiver(regStateReceiver);
+		}catch(Exception e) {}
 	}
 
     @Override
@@ -267,21 +268,18 @@ public class CallLog extends ListActivity {
 
 		SipProfile account = adapter.getItem(position);
 		if (service != null) {
-			AccountInfo accountInfo;
+			SipProfileState accountInfo;
 			try {
-				accountInfo = service.getAccountInfo(account.id);
+				accountInfo = service.getSipProfileState(account.id);
 			} catch (RemoteException e) {
 				accountInfo = null;
 			}
-			if (accountInfo != null && accountInfo.isActive()) {
-				if ( (accountInfo.getPjsuaId() >= 0 && accountInfo.getStatusCode() == pjsip_status_code.PJSIP_SC_OK) ||
-						accountInfo.getWizard().equalsIgnoreCase("LOCAL") ) {
-					try {
-						service.makeCall(number, account.id);
-						finish();
-					} catch (RemoteException e) {
-						Log.e(THIS_FILE, "Unable to make the call", e);
-					}
+			if ( accountInfo != null && accountInfo.isValidForCall() ) {
+				try {
+					service.makeCall(number, account.id);
+					finish();
+				} catch (RemoteException e) {
+					Log.e(THIS_FILE, "Unable to make the call", e);
 				}
 			}
 			//TODO : toast for elses

@@ -15,21 +15,20 @@
  *  You should have received a copy of the GNU General Public License
  *  along with CSipSimple.  If not, see <http://www.gnu.org/licenses/>.
  */
-package com.csipsimple.service;
-import com.csipsimple.api.SipProfile;
+package com.csipsimple.wizards.impl;
 
-interface ISipConfiguration {
-	//Account management
-	long addOrUpdateAccount(in SipProfile acc);
-	SipProfile getAccount(long acc_id);
+
+public class ITTelenet extends SimpleImplementation {
 	
-	//Prefs
-	void setPreferenceString(in String key, in String value);
-	void setPreferenceBoolean(in String key, boolean value);
-	void setPreferenceFloat(in String key, float value);
+	@Override
+	protected String getDomain() {
+		return "sip99.sipaccount.com";
+	}
 	
-	String getPreferenceString(in String key);
-	boolean getPreferenceBoolean(in String key);
-	float getPreferenceFloat(in String key);
+	@Override
+	protected String getDefaultName() {
+		return "ITTelenet";
+	}
+	
 	
 }

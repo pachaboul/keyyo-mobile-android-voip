@@ -18,15 +18,15 @@
 package com.csipsimple.wizards.impl;
 
 import java.util.HashMap;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
+import android.net.Uri;
 import android.preference.CheckBoxPreference;
 import android.preference.EditTextPreference;
-import android.text.TextUtils;
 
 import com.keyyomobile.android.voip.R;
 import com.csipsimple.api.SipProfile;
+import com.csipsimple.api.SipUri;
+import com.csipsimple.api.SipUri.ParsedSipContactInfos;
 import com.csipsimple.utils.Log;
 
 public class Advanced extends BaseImplementation {
@@ -55,35 +55,28 @@ public class Advanced extends BaseImplementation {
 		
 		accountDisplayName.setText(account.display_name);
 		
-		String server = "";
-		String caller_id = "";
-		String account_cfgid = account.acc_id;
-		if(account_cfgid == null) {
-			account_cfgid = "";
-		}
-		Pattern p = Pattern.compile("([^<]*)<sip:([^@]*)@([^>]*)>");
-		Matcher m = p.matcher(account_cfgid);
-
-		if (m.matches()) {
-			caller_id = m.group(1);
-			account_cfgid = m.group(2);
-			server = m.group(3);
-		}
 		
-		accountServer.setText(server);
-		accountCallerId.setText(caller_id);
-		accountUserName.setText(account_cfgid);
+		ParsedSipContactInfos parsedInfo = SipUri.parseSipContact(account.acc_id);
+		
+		String serverFull = account.reg_uri;
+		if (serverFull == null) {
+			serverFull = "";
+		}else {
+			serverFull = serverFull.replaceFirst("sip:", "");
+		}
+		accountServer.setText(serverFull);
+		accountCallerId.setText(parsedInfo.displayName);
+		accountUserName.setText(parsedInfo.userName);
 		
 		accountPassword.setText(account.data);
 
 		accountUseTcp.setChecked(account.transport == SipProfile.TRANSPORT_TCP);
-
+		
 		if(account.proxies != null && account.proxies.length > 0) {
 			accountProxy.setText(account.proxies[0].replaceFirst("sip:", ""));
 		}else {
 			accountProxy.setText("");
 		}
-
 	}
 
 	public void updateDescriptions() {
@@ -132,14 +125,15 @@ public class Advanced extends BaseImplementation {
 
 	public SipProfile buildAccount(SipProfile account) {
 		Log.d(THIS_FILE, "begin of save ....");
-		account.display_name = accountDisplayName.getText();
-		account.acc_id = accountCallerId.getText().trim() + " <sip:"
-				+ accountUserName.getText() + "@"+accountServer.getText()+">";
+		account.display_name = accountDisplayName.getText().trim();
+		String[] serverParts = accountServer.getText().split(":");
+		account.acc_id = accountCallerId.getText().trim() + 
+			" <sip:" + Uri.encode(accountUserName.getText().trim()) + "@" + serverParts[0].trim() + ">";
 		
 		account.reg_uri = "sip:" + accountServer.getText();
 
 		account.realm = "*";
-		account.username = getText(accountUserName);
+		account.username = getText(accountUserName).trim();
 		account.data = getText(accountPassword);
 		account.scheme = "Digest";
 		account.datatype = SipProfile.CRED_DATA_PLAIN_PASSWD;
@@ -147,7 +141,7 @@ public class Advanced extends BaseImplementation {
 		account.transport = accountUseTcp.isChecked() ? SipProfile.TRANSPORT_TCP : SipProfile.TRANSPORT_AUTO;
 		
 		if (!isEmpty(accountProxy)) {
-			account.proxies = new String[] { "sip:"+accountProxy.getText() };
+			account.proxies = new String[] { "sip:"+accountProxy.getText().trim() };
 		} else {
 			account.proxies = null;
 		}

@@ -53,5 +53,9 @@ public class Phonzo extends AuthorizationImplementation {
 		return "Phonzo";
 	}
 
+	@Override
+	protected String getDomain() {
+		return "sip.phonzo.com";
+	}
 	
 }

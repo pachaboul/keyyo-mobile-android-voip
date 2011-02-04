@@ -14,10 +14,12 @@
  *
  *  You should have received a copy of the GNU General Public License
  *  along with CSipSimple.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ *  This file and this file only is released under dual Apache license
  */
-package com.csipsimple.service;
-import com.csipsimple.models.AccountInfo;
-import com.csipsimple.models.CallInfo;
+package com.csipsimple.api;
+import com.csipsimple.api.SipProfileState;
+import com.csipsimple.api.SipCallSession;
 
 interface ISipService{
 	//Stack control
@@ -31,7 +33,7 @@ interface ISipService{
 	void removeAllAccounts();
 	void reAddAllAccounts();
 	void setAccountRegistration(int accountId, int renew);
-	AccountInfo getAccountInfo(int accountId);
+	SipProfileState getSipProfileState(int accountId);
 	
 	//Call configuration control
 	void switchToAutoAnswer();
@@ -45,8 +47,8 @@ interface ISipService{
 	int reinvite(int callId, boolean unhold);
 	int xfer(int callId, in String callee);
 	int xferReplace(int callId, int otherCallId, int options);
-	CallInfo getCallInfo(int callId);
-	CallInfo[] getCalls();
+	SipCallSession getCallInfo(int callId);
+	SipCallSession[] getCalls();
 	
 	//Media control
 	void setMicrophoneMute(boolean on);
@@ -55,6 +57,7 @@ interface ISipService{
 	void confAdjustTxLevel(int port, float value);
 	void confAdjustRxLevel(int port, float value);
 	void setEchoCancellation(boolean on);
+	void adjustVolume(in SipCallSession callInfo, int direction, int flags);
 	
 	//Record calls
 	void startRecording(int callId);

@@ -25,64 +25,6 @@ import com.keyyomobile.android.voip.R;
 
 public class CustomDistribution {
 
-	// CSipSimple trunk distribution
-	/*
-	public static boolean distributionWantsOtherAccounts() {
-		return true;
-	}
-	
-	public static String getSupportEmail() {
-		return "developers@csipsimple.com";
-	}
-	
-	public static String getUserAgent() {
-		return "CSipSimple";
-	}
-	
-	public static WizardInfo getCustomDistributionWizard() {
-		return null; 
-	}
-	
-	public static String getRootPackage() {
-		return "com.csipsimple";
-	}
-	*/
-	
-	
-	//Ippi distribution
-	/*
-	public static boolean distributionWantsOtherAccounts() {
-		return true;
-	}
-
-	public static boolean distributionWantsOtherProviders() {
-		return false;
-	}
-
-	public static String getSupportEmail() {
-		return "support@ippi.fr";
-	}
-	
-	public static String getUserAgent() {
-		return "ippi";
-	}
-	
-	public static WizardInfo getCustomDistributionWizard() {
-		 return new WizardInfo("IPPI", "ippi Android", 
-				R.drawable.ic_wizard_ippi, 10, 
-				new Locale[]{
-					Locale.FRANCE,
-					new Locale("FR", "be"),
-					new Locale("FR", "ch"),
-					Locale.CANADA,
-					Locale.US,
-					new Locale("FR", "ma"),
-					new Locale("FR", "dz"),
-					new Locale("FR", "tn"),
-				}, false, false, Ippi.class);
-		 
-	}
-	*/
 	
 	
 	
@@ -121,6 +63,14 @@ public class CustomDistribution {
 
 	public static String getFaqLink() {
 		return "http://www.keyyomobile.com/voip/faq.htm";
+	}
+
+	public static boolean supportMessaging() {
+		return false;
+	}
+
+	public static boolean showFirstSettingScreen() {
+		return false;
 	}
 	
 	

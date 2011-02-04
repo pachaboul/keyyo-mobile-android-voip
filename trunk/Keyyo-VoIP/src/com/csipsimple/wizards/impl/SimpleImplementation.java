@@ -18,14 +18,15 @@
 package com.csipsimple.wizards.impl;
 
 import java.util.HashMap;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
+import android.net.Uri;
 import android.preference.CheckBoxPreference;
 import android.preference.EditTextPreference;
 
 import com.keyyomobile.android.voip.R;
 import com.csipsimple.api.SipProfile;
+import com.csipsimple.api.SipUri;
+import com.csipsimple.api.SipUri.ParsedSipContactInfos;
 
 public abstract class SimpleImplementation extends BaseImplementation {
 	//private static final String THIS_FILE = "SimplePrefsWizard";
@@ -54,18 +55,9 @@ public abstract class SimpleImplementation extends BaseImplementation {
 			display_name = getDefaultName();
 		}
 		accountDisplayName.setText(display_name);
-		String account_cfgid = account.acc_id;
-		if(account_cfgid == null) {
-			account_cfgid = "";
-		}
-		Pattern p = Pattern.compile("[^<]*<sip:([^@]*)@.*");
-		Matcher m = p.matcher(account_cfgid);
-
-		if (m.matches()) {
-			account_cfgid = m.group(1);
-		}
-
-		accountUsername.setText(account_cfgid);
+		ParsedSipContactInfos parsedInfo = SipUri.parseSipContact(account.acc_id);
+		
+		accountUsername.setText(parsedInfo.userName);
 		accountPassword.setText(account.data);
 		
 		if(canTcp()) {
@@ -112,10 +104,10 @@ public abstract class SimpleImplementation extends BaseImplementation {
 	}
 
 	public SipProfile buildAccount(SipProfile account) {
-		account.display_name = accountDisplayName.getText();
+		account.display_name = accountDisplayName.getText().trim();
 		// TODO add an user display name
 		account.acc_id = "<sip:"
-				+ accountUsername.getText() + "@"+getDomain()+">";
+				+ Uri.encode(accountUsername.getText().trim()) + "@"+getDomain()+">";
 		
 		String regUri = "sip:"+getDomain();
 		account.reg_uri = regUri;
@@ -123,7 +115,7 @@ public abstract class SimpleImplementation extends BaseImplementation {
 
 		
 		account.realm = "*";
-		account.username = getText(accountUsername);
+		account.username = getText(accountUsername).trim();
 		account.data = getText(accountPassword);
 		account.scheme = "Digest";
 		account.datatype = SipProfile.CRED_DATA_PLAIN_PASSWD;

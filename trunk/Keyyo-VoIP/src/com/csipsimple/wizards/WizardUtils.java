@@ -33,33 +33,44 @@ import android.content.Context;
 import com.keyyomobile.android.voip.R;
 import com.csipsimple.api.SipProfile;
 import com.csipsimple.utils.CustomDistribution;
+import com.csipsimple.wizards.impl.A1;
 import com.csipsimple.wizards.impl.Advanced;
 import com.csipsimple.wizards.impl.Basic;
 import com.csipsimple.wizards.impl.Callcentric;
+import com.csipsimple.wizards.impl.CamundaNet;
+import com.csipsimple.wizards.impl.DeltaThree;
 import com.csipsimple.wizards.impl.Ecs;
 import com.csipsimple.wizards.impl.Ekiga;
 import com.csipsimple.wizards.impl.Eutelia;
 import com.csipsimple.wizards.impl.Expert;
+import com.csipsimple.wizards.impl.Fayn;
 import com.csipsimple.wizards.impl.Freephonie;
 import com.csipsimple.wizards.impl.Gizmo5;
+import com.csipsimple.wizards.impl.ITTelenet;
 import com.csipsimple.wizards.impl.IiNet;
 import com.csipsimple.wizards.impl.Ip2Mobile;
 import com.csipsimple.wizards.impl.IpTel;
 import com.csipsimple.wizards.impl.Ippi;
 import com.csipsimple.wizards.impl.Keyyo;
 import com.csipsimple.wizards.impl.Local;
+import com.csipsimple.wizards.impl.Mondotalk;
 import com.csipsimple.wizards.impl.NexGenTel;
 import com.csipsimple.wizards.impl.OnSip;
+import com.csipsimple.wizards.impl.Ovh;
 import com.csipsimple.wizards.impl.Pbxes;
 import com.csipsimple.wizards.impl.Pennytel;
 import com.csipsimple.wizards.impl.Phonzo;
 import com.csipsimple.wizards.impl.PlanetPhone;
+import com.csipsimple.wizards.impl.Pozitel;
+import com.csipsimple.wizards.impl.Scarlet;
 import com.csipsimple.wizards.impl.Sip2Sip;
 import com.csipsimple.wizards.impl.SipSorcery;
 import com.csipsimple.wizards.impl.Sipgate;
 import com.csipsimple.wizards.impl.Speakezi;
 import com.csipsimple.wizards.impl.UkrTelecom;
 import com.csipsimple.wizards.impl.VPhone;
+import com.csipsimple.wizards.impl.Vono;
+import com.csipsimple.wizards.impl.WiMobile;
 
 
 public class WizardUtils {
@@ -172,6 +183,18 @@ public class WizardUtils {
 					R.drawable.ic_wizard_ale, 5, 
 					new Locale[]{}, false, true, 
 					Ecs.class));
+			WIZARDS_DICT.put("ITTELENET", new WizardInfo("ITTELENET", "ITTelenet", 
+					R.drawable.ic_wizard_ittelenet, 10, 
+					new Locale[]{}, false, true, 
+					ITTelenet.class));
+			WIZARDS_DICT.put("DELTATHREE", new WizardInfo("DELTATHREE", "deltathree", 
+					R.drawable.ic_wizard_deltathree, 35, 
+					new Locale[]{ }, false, true, 
+					DeltaThree.class));
+			WIZARDS_DICT.put("CAMUNDANET", new WizardInfo("CAMUNDANET", "CamundaNet", 
+					R.drawable.ic_wizard_camundanet, 15, 
+					new Locale[]{}, false, true, 
+					CamundaNet.class));
 			
 			
 			//Locales
@@ -183,6 +206,10 @@ public class WizardUtils {
 					R.drawable.ic_wizard_eutelia, 30, 
 					new Locale[]{Locale.ITALY}, false, false, 
 					Eutelia.class));
+			WIZARDS_DICT.put("WIMOBILE", new WizardInfo("WIMOBILE", "WiMobile", 
+					R.drawable.ic_wizard_wimobile, 20, 
+					new Locale[]{Locale.ITALY}, false, false, 
+					WiMobile.class));
 			WIZARDS_DICT.put("FREEPHONIE", new WizardInfo("FREEPHONIE", "Freephonie", 
 					R.drawable.ic_wizard_freephonie, 30, 
 					new Locale[]{Locale.FRANCE}, false, false, 
@@ -257,6 +284,45 @@ public class WizardUtils {
 					R.drawable.ic_wizard_speakezi, 30, 
 					new Locale[] {new Locale("EN", "za"), new Locale("AF", "za")}, false, false, 
 					Speakezi.class));
+			WIZARDS_DICT.put("POZITEL", new WizardInfo("POZITEL", "Pozitel", 
+					R.drawable.ic_wizard_pozitel, 30, 
+					new Locale[] {new Locale("TR", "tr")}, false, false, 
+					Pozitel.class));
+			WIZARDS_DICT.put("MONDOTALK", new WizardInfo("MONDOTALK", "Mondotalk", 
+					R.drawable.ic_wizard_mondotalk, 20, 
+					new Locale[] {new Locale("EN", "au"), new Locale("EN", "us"), new Locale("EN", "nz")}, false, false, 
+					Mondotalk.class));
+			WIZARDS_DICT.put("A1", new WizardInfo("A1", "A1", 
+					R.drawable.ic_wizard_a1, 20, 
+					new Locale[] {new Locale("DE", "at")}, false, false, 
+					A1.class));
+			WIZARDS_DICT.put("SCARLET", new WizardInfo("SCARLET", "scarlet.be", 
+					R.drawable.ic_wizard_scarlet, 10, 
+					new Locale[]{
+						new Locale("FR", "be"),
+						new Locale("NL", "be"),
+						new Locale("NL", "nl"),
+					}, false, false, Scarlet.class));
+			WIZARDS_DICT.put("VONO", new WizardInfo("VONO", "vono", 
+					R.drawable.ic_wizard_vono, 10, 
+					new Locale[] {new Locale("PT", "br")}, false, false, 
+					Vono.class));
+			
+			WIZARDS_DICT.put("OVH", new WizardInfo("OVH", "Ovh", 
+					R.drawable.ic_wizard_ovh, 10, 
+					new Locale[]{
+						Locale.FRANCE,	
+						new Locale("FR", "be"),
+						Locale.GERMANY,
+						Locale.UK
+					}, false, false, 
+					Ovh.class));
+			WIZARDS_DICT.put("FAYN", new WizardInfo("FAYN", "Fayn", 
+					R.drawable.ic_wizard_fayn, 30, 
+					new Locale[]{
+						new Locale("CS", "cz"),
+					}, false, false, 
+					Fayn.class));
 			
 		}else {
 			WizardInfo info = CustomDistribution.getCustomDistributionWizard();
@@ -339,17 +405,19 @@ public class WizardUtils {
 		m.put(LANG_DISPLAY, context.getString(R.string.generic_wizards_text));
 		result.add(m);
 		
-		//World
-		m = new HashMap<String, String>();
-	//	m.put("lang", "world");
-		m.put(LANG_DISPLAY, context.getString(R.string.world_wide_providers_text));
-		result.add(m);
-		
-		//Others
-		m = new HashMap<String, String>();
-	//	m.put("lang", "others");
-		m.put(LANG_DISPLAY, context.getString(R.string.other_country_providers_text));
-		result.add(m);
+		if(CustomDistribution.distributionWantsOtherProviders()) {
+			//World
+			m = new HashMap<String, String>();
+		//	m.put("lang", "world");
+			m.put(LANG_DISPLAY, context.getString(R.string.world_wide_providers_text));
+			result.add(m);
+			
+			//Others
+			m = new HashMap<String, String>();
+		//	m.put("lang", "others");
+			m.put(LANG_DISPLAY, context.getString(R.string.other_country_providers_text));
+			result.add(m);
+		}
 		
 		return result;
 	}

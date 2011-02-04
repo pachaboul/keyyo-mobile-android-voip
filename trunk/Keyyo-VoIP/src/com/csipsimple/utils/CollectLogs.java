@@ -18,14 +18,22 @@
 package com.csipsimple.utils;
 
 import java.io.BufferedReader;
+
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
+import java.util.Date;
 
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager.NameNotFoundException;
+import android.net.Uri;
+import android.text.format.DateFormat;
+import android.util.Pair;
 
 public class CollectLogs {
 
@@ -69,12 +77,28 @@ public class CollectLogs {
 
     If not specified with -v, format is set from ANDROID_PRINTF_LOG
     or defaults to "brief"*/
-	public final static StringBuilder getLogs() {
+	public final static Pair<StringBuilder, File> getLogs() {
+		//Clear old files
+		PreferencesWrapper.cleanLogsFiles();
+		
         final StringBuilder log = new StringBuilder();
+        File outFile = null;
         try{
-            ArrayList<String> commandLine = new ArrayList<String>();
-            commandLine.add("logcat");//$NON-NLS-1$
-            commandLine.add("-d");//$NON-NLS-1$
+        	ArrayList<String> commandLine = new ArrayList<String>();
+            commandLine.add("logcat");
+        	
+        	
+        	File dir = PreferencesWrapper.getLogsFolder();
+        	if( dir != null) {
+    			Date d = new Date();
+    			outFile = new File(dir.getAbsoluteFile() + File.separator + "logs_"+DateFormat.format("MM-dd-yy_kkmmss", d)+".txt");
+    			
+    			commandLine.add("-f");
+    			commandLine.add(outFile.getAbsolutePath());
+    			Log.d(THIS_FILE, commandLine.toString());
+        	}
+
+            commandLine.add("-d");
             commandLine.add("D");
             
             Process process = Runtime.getRuntime().exec(commandLine.toArray(new String[0]));
@@ -91,8 +115,7 @@ public class CollectLogs {
             Log.e(THIS_FILE, "Collect logs failed : ", e);//$NON-NLS-1$
             log.append("Unable to get logs : " + e.toString());
         }
-        
-        return log;
+        return new Pair<StringBuilder, File>(log, outFile);
 	}
 	
 	public final static StringBuilder getDeviceInfo() {
@@ -145,10 +168,14 @@ public class CollectLogs {
 	}
 	
 	public static Intent getLogReportIntent(String userComment, Context ctx) {
+		Pair<StringBuilder, File> logs = getLogs();
+		
+		
 		Intent sendIntent = new Intent(Intent.ACTION_SEND);
         sendIntent.putExtra(Intent.EXTRA_SUBJECT, "CSipSimple Error-Log report");
-        sendIntent.setType("text/plain");
         sendIntent.putExtra(Intent.EXTRA_EMAIL, new String[] { CustomDistribution.getSupportEmail() });
+        
+        
         
         StringBuilder log = new StringBuilder();
         log.append(userComment);
@@ -158,13 +185,39 @@ public class CollectLogs {
         log.append(LINE_SEPARATOR);
         log.append(getDeviceInfo());
         log.append(LINE_SEPARATOR);
-        log.append(getLogs());
+        log.append(logs.first);
+        
+
+        if(logs.second != null) {
+        	sendIntent.putExtra( Intent.EXTRA_STREAM, Uri.fromFile(logs.second) );
+        	/*
+        	BufferedReader buf;
+			String line;
+			try {
+				buf = new BufferedReader(new FileReader(logs.second));
+			
+				while( (line = buf.readLine()) != null ) {
+					 log.append(line);
+				}
+			
+			} catch (FileNotFoundException e) {
+				Log.e(THIS_FILE, "Impossible to open log file", e);
+			} catch (IOException e) {
+				Log.e(THIS_FILE, "Impossible to read log file", e);
+			}
+			*/
+        }
+        
+
         log.append(LINE_SEPARATOR);
         log.append(LINE_SEPARATOR);
         log.append(userComment);
+        
+        sendIntent.setType("text/plain");
         
         sendIntent.putExtra(Intent.EXTRA_TEXT, log.toString());
         
         return sendIntent;
 	}
+	
 }

@@ -30,7 +30,12 @@ import android.os.Handler;
 import android.os.Message;
 import android.text.InputType;
 import android.text.format.DateFormat;
+import android.view.View;
+import android.widget.LinearLayout;
+import android.widget.TextView;
 
+import com.keyyomobile.android.voip.R;
+import com.csipsimple.api.SipConfigManager;
 import com.csipsimple.api.SipProfile;
 import com.csipsimple.utils.Log;
 import com.csipsimple.utils.MD5;
@@ -43,6 +48,9 @@ public class Ippi extends SimpleImplementation {
 	protected static final int DID_SUCCEED = 0;
 	protected static final int DID_ERROR = 1;
 
+	private LinearLayout customWizard;
+	private TextView customWizardText;
+	
 	@Override
 	protected String getDomain() {
 		return "ippi.fr";
@@ -58,10 +66,55 @@ public class Ippi extends SimpleImplementation {
 	@Override
 	public void fillLayout(final SipProfile account) {
 		super.fillLayout(account);
-
 		accountUsername.getEditText().setInputType(InputType.TYPE_CLASS_TEXT);
 
-		if (account.id != SipProfile.INVALID_ID) {
+		//Get wizard specific row
+		customWizardText = (TextView) parent.findViewById(R.id.custom_wizard_text);
+		customWizard = (LinearLayout) parent.findViewById(R.id.custom_wizard_row);
+		
+		updateAccountInfos(account);
+	}
+
+	private Handler creditHandler = new Handler() {
+		public void handleMessage(Message message) {
+			switch (message.what) {
+			case DID_SUCCEED: {
+				//Here we get the credit info, now add a row in the interface
+				String response = (String) message.obj;
+				try{
+					int value = Integer.parseInt(response);
+					if(value >= 0) {
+						customWizardText.setText("Credit : " + response + " euros");
+						customWizard.setVisibility(View.VISIBLE);
+					}
+				}catch(NumberFormatException e) {
+					Log.e(THIS_FILE, "Impossible to parse result");
+				}catch (NullPointerException e) {
+					Log.e(THIS_FILE, "Null result");
+				}
+				
+				break;
+			}
+			case DID_ERROR: {
+				Exception e = (Exception) message.obj;
+				e.printStackTrace();
+				break;
+			}
+			}
+		}
+	};
+	
+	@Override
+	public void setDefaultParams(PreferencesWrapper prefs) {
+		super.setDefaultParams(prefs);
+		// Add stun server
+		prefs.setPreferenceBooleanValue(SipConfigManager.ENABLE_STUN, true);
+		prefs.setPreferenceBooleanValue(SipConfigManager.ENABLE_ICE, true);
+		prefs.addStunServer("stun.ippi.fr");
+	}
+	
+	private void updateAccountInfos(final SipProfile acc) {
+		if (acc != null && acc.id != SipProfile.INVALID_ID) {
 			Thread t = new Thread() {
 
 				public void run() {
@@ -69,8 +122,8 @@ public class Ippi extends SimpleImplementation {
 						HttpClient httpClient = new DefaultHttpClient();
 						
 						String requestURL = "https://soap.ippi.fr/credit/check_credit.php?"
-							+ "login=" + account.username
-							+ "&code=" + MD5.MD5Hash(account.data + DateFormat.format("yyyyMMdd", new Date()));
+							+ "login=" + acc.username
+							+ "&code=" + MD5.MD5Hash(acc.data + DateFormat.format("yyyyMMdd", new Date()));
 						HttpGet httpGet = new HttpGet(requestURL);
 
 						// Create a response handler
@@ -90,33 +143,7 @@ public class Ippi extends SimpleImplementation {
 			t.start();
 		}
 	}
-
-	private Handler creditHandler = new Handler() {
-		public void handleMessage(Message message) {
-			switch (message.what) {
-			case DID_SUCCEED: {
-				String response = (String) message.obj;
-				Log.d(THIS_FILE, "Response : " + response);
-				
-				break;
-			}
-			case DID_ERROR: {
-				Exception e = (Exception) message.obj;
-				e.printStackTrace();
-				break;
-			}
-			}
-		}
-	};
 	
-	@Override
-	public void setDefaultParams(PreferencesWrapper prefs) {
-		super.setDefaultParams(prefs);
-		// Add stun server
-		prefs.setPreferenceBooleanValue(PreferencesWrapper.ENABLE_STUN, true);
-		prefs.setPreferenceBooleanValue(PreferencesWrapper.ENABLE_ICE, true);
-		prefs.addStunServer("stun.ippi.fr");
-	}
 	
 	@Override
 	protected boolean canTcp() {
@@ -126,5 +153,12 @@ public class Ippi extends SimpleImplementation {
 	@Override
 	public boolean needRestart() {
 		return true;
+	}
+	
+	public SipProfile buildAccount(SipProfile account) {
+		account = super.buildAccount(account);
+		//Proxy useless....?????
+		//account.proxies = null;
+		return account;
 	}
 }
