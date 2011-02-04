@@ -24,7 +24,7 @@ import android.view.View;
 import android.widget.RemoteViews;
 
 import com.keyyomobile.android.voip.R;
-import com.csipsimple.models.AccountInfo;
+import com.csipsimple.api.SipProfileState;
 import com.csipsimple.wizards.WizardUtils;
 import com.csipsimple.wizards.WizardUtils.WizardInfo;
 
@@ -58,14 +58,16 @@ public class RegistrationNotification extends RemoteViews {
 		}
 	}
 
-	public void addAccountInfos(Context context, ArrayList<AccountInfo> activeAccountsInfos) {
+	public void addAccountInfos(Context context, ArrayList<SipProfileState> activeAccountsInfos) {
 		int i = 0;
-		for(AccountInfo accountInfo : activeAccountsInfos ) {
+		for(SipProfileState accountInfo : activeAccountsInfos ) {
 			if(i<cells.length) {
 				setViewVisibility(cells[i], View.VISIBLE);
 				WizardInfo wizardInfos = WizardUtils.getWizardClass(accountInfo.getWizard());
-				setImageViewResource(icons[i], wizardInfos.icon);
-				setTextViewText(texts[i], accountInfo.getDisplayName());
+				if(wizardInfos != null) {
+					setImageViewResource(icons[i], wizardInfos.icon);
+					setTextViewText(texts[i], accountInfo.getDisplayName());
+				}
 				i++;
 			}
 		}

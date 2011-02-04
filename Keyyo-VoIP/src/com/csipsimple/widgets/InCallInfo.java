@@ -18,13 +18,11 @@
 package com.csipsimple.widgets;
 
 
-import org.pjsip.pjsua.pjsip_inv_state;
-
 import android.content.Context;
 import android.graphics.Color;
+import android.graphics.Rect;
 import android.os.Handler;
 import android.os.Message;
-import android.text.TextUtils;
 import android.util.AttributeSet;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -36,20 +34,25 @@ import android.widget.TextView;
 
 import com.keyyomobile.android.voip.R;
 import com.csipsimple.api.SipProfile;
+import com.csipsimple.api.SipCallSession;
+import com.csipsimple.api.SipUri;
+import com.csipsimple.api.SipUri.ParsedSipContactInfos;
 import com.csipsimple.db.DBAdapter;
-import com.csipsimple.models.CallInfo;
 import com.csipsimple.models.CallerInfo;
+//TODO : we should add a service here to avoid direct access to pj
+import com.csipsimple.pjsip.PjSipCalls;
 import com.csipsimple.service.SipService;
+import com.csipsimple.utils.CallsUtils;
 import com.csipsimple.utils.ContactsAsyncHelper;
 import com.csipsimple.utils.Log;
-import com.csipsimple.utils.SipUri;
-import com.csipsimple.utils.SipUri.ParsedSipUriInfos;
+import com.csipsimple.widgets.InCallControls.OnTriggerListener;
 
+import android.view.View.OnClickListener;
 
-public class InCallInfo extends FrameLayout {
+public class InCallInfo extends FrameLayout implements OnClickListener {
 	
 	private static final String THIS_FILE = "InCallInfo";
-	CallInfo callInfo;
+	SipCallSession callInfo;
 	String remoteUri = "";
 	private ImageView photo;
 	private TextView remoteName, title;
@@ -70,6 +73,8 @@ public class InCallInfo extends FrameLayout {
 		LayoutInflater inflater = LayoutInflater.from(context);
 		inflater.inflate(R.layout.in_call_info, this, true);
 		db = new DBAdapter(context);
+		
+		
 	}
 	
 	
@@ -94,19 +99,61 @@ public class InCallInfo extends FrameLayout {
 		colorEnd = Color.parseColor("#FF6072");
 		
 		secure.bringToFront();
+		
+		
+		quickAction = new QuickActionWindow(getContext(), photo);
+//		photo.setOnClickListener(this);
 	}
 
-	public void setCallState(CallInfo aCallInfo) {
+	public void setCallState(SipCallSession aCallInfo) {
 		callInfo = aCallInfo;
 		//TODO: see if should be threaded now could improve loading speed of this view on old devices
 //		Thread t = new Thread() {
 //			public void run() {
 				updateRemoteName();
 				updateTitle();
+				updateQuickActions();
 //			};
 //		};
 //		t.start();
 		updateElapsedTimer();
+		
+		
+		
+	}
+	
+
+
+	private synchronized void updateQuickActions() {
+		quickAction.removeAllItems();
+		
+		if(callInfo == null) {
+			return;
+		}
+		
+
+		int state = callInfo.getCallState();
+		
+		//Add items if possible
+		if(state != SipCallSession.InvState.NULL) {
+			quickAction.addItem(R.drawable.ic_in_call_touch_round_details, "Info", new OnClickListener() {
+				@Override
+				public void onClick(View v) {
+					dispatchTriggerEvent(OnTriggerListener.DETAILED_DISPLAY);
+					quickAction.dismiss();
+				}
+			});
+		}
+	}
+	
+
+	
+	private synchronized void updateTitle() {
+		if(callInfo != null) {
+			title.setText(CallsUtils.getStringCallState(callInfo, context));
+		}else {
+			title.setText(R.string.call_state_disconnected);
+		}
 		
 	}
 	
@@ -122,20 +169,12 @@ public class InCallInfo extends FrameLayout {
 		//If not already set with the same value, just ignore it
 		if(aRemoteUri != null && !aRemoteUri.equalsIgnoreCase(remoteUri)) {
 			remoteUri = aRemoteUri;
-			String remoteContact = aRemoteUri;
-			
-			ParsedSipUriInfos uriInfos = SipUri.parseSipUri(remoteUri);
-			
-			if(!TextUtils.isEmpty(uriInfos.displayName)) {
-				remoteContact = uriInfos.displayName;
-			}else if(!TextUtils.isEmpty(uriInfos.userName)) {
-				remoteContact = uriInfos.userName;
-			}
-			
-			remoteName.setText(remoteContact);
+			ParsedSipContactInfos uriInfos = SipUri.parseSipContact(remoteUri);
+
+			remoteName.setText(SipUri.getDisplayedSimpleContact(aRemoteUri));
 			remotePhoneNumber.setText(uriInfos.userName);
 			
-			SipProfile acc = SipService.getAccountForPjsipId(callInfo.getAccId(), db);
+			SipProfile acc = SipService.getAccount(callInfo.getAccId(), db);
 			if(acc != null && acc.display_name != null) {
 				label.setText("SIP/"+acc.display_name+" :");
 			}
@@ -157,6 +196,8 @@ public class InCallInfo extends FrameLayout {
 	
 
 	private void updateElapsedTimer() {
+		
+		
 		if(callInfo == null) {
 			elapsedTime.stop();
 			elapsedTime.setVisibility(VISIBLE);
@@ -166,16 +207,16 @@ public class InCallInfo extends FrameLayout {
 		elapsedTime.setBase(callInfo.getConnectStart());
 		secure.setVisibility(callInfo.isSecure()?View.VISIBLE:View.GONE);
 		
-		pjsip_inv_state state = callInfo.getCallState();
+		int state = callInfo.getCallState();
 		switch (state) {
-		case PJSIP_INV_STATE_INCOMING:
-		case PJSIP_INV_STATE_CALLING:
-		case PJSIP_INV_STATE_EARLY:
-		case PJSIP_INV_STATE_CONNECTING:
+		case SipCallSession.InvState.INCOMING:
+		case SipCallSession.InvState.CALLING:
+		case SipCallSession.InvState.EARLY:
+		case SipCallSession.InvState.CONNECTING:
 			elapsedTime.setVisibility(GONE);
 			elapsedTime.start();
 			break;
-		case PJSIP_INV_STATE_CONFIRMED:
+		case SipCallSession.InvState.CONFIRMED:
 			Log.d(THIS_FILE, "we start the timer now ");
 			
 			elapsedTime.start();
@@ -183,30 +224,22 @@ public class InCallInfo extends FrameLayout {
 			elapsedTime.setTextColor(colorConnected);
 			
 			break;
-		case PJSIP_INV_STATE_NULL:
-		case PJSIP_INV_STATE_DISCONNECTED:
+		case SipCallSession.InvState.NULL:
+		case SipCallSession.InvState.DISCONNECTED:
 			elapsedTime.stop();
 			elapsedTime.setVisibility(VISIBLE);
 			elapsedTime.setTextColor(colorEnd);
 			break;
 		}
-	}
-	
-	private void updateTitle() {
-		if(callInfo != null) {
-			title.setText(callInfo.getStringCallState(context));
-		}else {
-			title.setText(R.string.call_state_disconnected);
-		}
+		
 		
 	}
-	
 	
 	public void switchDetailedInfo(boolean showDetails) {
 		currentInfo.setVisibility(showDetails?GONE:VISIBLE);
 		currentDetailedInfo.setVisibility(showDetails?VISIBLE:GONE);
 		if(showDetails && callInfo != null) {
-			String infos = callInfo.dumpCallInfo();
+			String infos = PjSipCalls.dumpCallInfo(callInfo.getCallId());
 			TextView detailText = (TextView) findViewById(R.id.detailsText);
 			detailText.setText(infos);
 		}
@@ -232,5 +265,43 @@ public class InCallInfo extends FrameLayout {
 			
 		};
 	};
+	private QuickActionWindow quickAction;
+	private OnTriggerListener onTriggerListener;
+
+	@Override
+	public void onClick(View v) {
+		switch (v.getId()) {
+		case R.id.photo:
+			int[] xy = new int[2];
+			v.getLocationInWindow(xy);
+			Rect r = new Rect(xy[0], xy[1], xy[0] + v.getWidth(), xy[1] + v.getHeight());
+			
+			quickAction.setAnchor(r);
+			
+			
+			quickAction.show();
+			
+			break;
+
+		default:
+			break;
+		}
+	}
+
+	/*
+	 * Registers a callback to be invoked when the user triggers an event.
+	 * 
+	 * @param listener
+	 *            the OnTriggerListener to attach to this view
+	 */
+	public void setOnTriggerListener(OnTriggerListener listener) {
+		onTriggerListener = listener;
+	}
+
+	private void dispatchTriggerEvent(int whichHandle) {
+		if (onTriggerListener != null) {
+			onTriggerListener.onTrigger(whichHandle, callInfo);
+		}
+	}
 
 }

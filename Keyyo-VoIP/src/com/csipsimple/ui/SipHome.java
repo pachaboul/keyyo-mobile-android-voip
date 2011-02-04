@@ -33,6 +33,7 @@ import android.content.pm.PackageManager.NameNotFoundException;
 import android.net.Uri;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
+import android.telephony.PhoneNumberUtils;
 import android.text.TextUtils;
 import android.view.KeyEvent;
 import android.view.Menu;
@@ -45,9 +46,11 @@ import android.widget.TabHost.TabSpec;
 import android.widget.Toast;
 
 import com.keyyomobile.android.voip.R;
+import com.csipsimple.api.SipConfigManager;
 import com.csipsimple.api.SipManager;
 import com.csipsimple.api.SipProfile;
 import com.csipsimple.db.DBAdapter;
+import com.csipsimple.pjsip.NativeLibManager;
 import com.csipsimple.service.SipService;
 import com.csipsimple.ui.help.Help;
 import com.csipsimple.ui.messages.ConversationList;
@@ -97,10 +100,10 @@ public class SipHome extends TabActivity {
 		prefWrapper = new PreferencesWrapper(this);
 		super.onCreate(savedInstanceState);
 		
-		
+		boolean useBundle = NativeLibManager.USE_BUNDLE;
 		
 		// Check sip stack
-		if (!SipService.hasStackLibFile(this)) {
+		if (!useBundle && !NativeLibManager.hasStackLibFile(this)) {
 			//If not -> FIRST RUN : Just launch stack getter
 			Log.d(THIS_FILE, "Has no sip stack....");
 			Intent welcomeIntent = new Intent(this, WelcomeScreen.class);
@@ -109,52 +112,34 @@ public class SipHome extends TabActivity {
 			startActivity(welcomeIntent);
 			finish();
 			return;
-		} else if (!SipService.hasBundleStack(this)) {
+		} else if (!useBundle && !NativeLibManager.hasBundleStack(this)) {
+			// It's not the first setup and there is debug stack
 			// We have to check and save current version
-			try {
-				PackageInfo pinfo = getPackageManager().getPackageInfo(getPackageName(), 0);
-				int runningVersion = pinfo.versionCode;
-				SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
-				int lastSeenVersion = prefs.getInt(LAST_KNOWN_VERSION_PREF, 0);
-
-				Log.d(THIS_FILE, "Last known version is " + lastSeenVersion + " and currently we are running " + runningVersion);
-				if (lastSeenVersion != runningVersion) {
-					// TODO : check if greater version
-					// (should be most of the case...but if not we should maybe
-					// popup the user that
-					// if n+1 version doesn't work for him he could fill a bug
-					// on bug tracker)
-					Compatibility.updateVersion(prefWrapper, lastSeenVersion, runningVersion);
-					Log.d(THIS_FILE, "Sip stack may have changed");
-					Intent changelogIntent = new Intent(this, WelcomeScreen.class);
-					changelogIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-					changelogIntent.putExtra(WelcomeScreen.KEY_MODE, WelcomeScreen.MODE_CHANGELOG);
-					startActivity(changelogIntent);
-					finish();
-					return;
-				}
-			} catch (NameNotFoundException e) {
-				// Should not happen....or something is wrong with android...
-				Log.e(THIS_FILE, "Not possible to find self name", e);
+			Integer runningVersion = needUpgrade();
+			if(runningVersion != null) {
+				// Just to be sure delete the current stack and anyway upgrade it.
+				NativeLibManager.cleanStack(this);
+				
+				// We have to launch WelcomeScreen again
+				Log.d(THIS_FILE, "Sip stack may have changed");
+				Intent changelogIntent = new Intent(this, WelcomeScreen.class);
+				changelogIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+				changelogIntent.putExtra(WelcomeScreen.KEY_MODE, WelcomeScreen.MODE_CHANGELOG);
+				startActivity(changelogIntent);
+				finish();
+				return;
 			}
 		}else {
-			// DEV MODE -- still upgrade settings
-			try {
-				PackageInfo pinfo = getPackageManager().getPackageInfo(getPackageName(), 0);
-				int runningVersion = pinfo.versionCode;
+			// DEV MODE OR BUNDLE MODE -- still upgrade settings
+			Integer runningVersion = needUpgrade();
+			if(runningVersion != null) {
+				//Clean current native file downloaded if any cause useless right now
+				NativeLibManager.cleanStack(this);
+				
 				SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
-				int lastSeenVersion = prefs.getInt(LAST_KNOWN_VERSION_PREF, 0);
-
-				Log.d(THIS_FILE, "Last known version is " + lastSeenVersion + " and currently we are running " + runningVersion);
-				if (lastSeenVersion != runningVersion) {
-					Compatibility.updateVersion(prefWrapper, lastSeenVersion, runningVersion);
-					Editor editor = prefs.edit();
-    				editor.putInt(SipHome.LAST_KNOWN_VERSION_PREF, runningVersion);
-    				editor.commit();
-				}
-			} catch (NameNotFoundException e) {
-				// Should not happen....or something is wrong with android...
-				Log.e(THIS_FILE, "Not possible to find self name", e);
+				Editor editor = prefs.edit();
+				editor.putInt(SipHome.LAST_KNOWN_VERSION_PREF, runningVersion);
+				editor.commit();
 			}
 		}
 		
@@ -168,27 +153,49 @@ public class SipHome extends TabActivity {
 
 		addTab(TAB_DIALER, getString(R.string.dial_tab_name_text), R.drawable.ic_tab_selected_dialer, R.drawable.ic_tab_unselected_dialer, dialerIntent);
 		addTab(TAB_CALLLOG, getString(R.string.calllog_tab_name_text), R.drawable.ic_tab_selected_recent, R.drawable.ic_tab_unselected_recent, calllogsIntent);
-	//	addTab(TAB_MESSAGES, getString(R.string.messages_tab_name_text), R.drawable.ic_tab_selected_messages, R.drawable.ic_tab_unselected_messages, messagesIntent);
-		
+		if(CustomDistribution.supportMessaging()) {
+			addTab(TAB_MESSAGES, getString(R.string.messages_tab_name_text), R.drawable.ic_tab_selected_messages, R.drawable.ic_tab_unselected_messages, messagesIntent);
+		}
 		pickupContact = (ImageButton) findViewById(R.id.pickup_contacts);
 		pickupContact.setOnClickListener(new OnClickListener() {
 			@Override
 			public void onClick(View v) {
-				
 				startActivityForResult(Compatibility.getContactPhoneIntent(), PICKUP_PHONE);
 			}
 		});
-		pickupContact.setVisibility(View.GONE);
 		
 		has_tried_once_to_activate_account = false;
 		
 
-		if(!prefWrapper.getPreferenceBooleanValue(PreferencesWrapper.PREVENT_SCREEN_ROTATION)) {
+		if(!prefWrapper.getPreferenceBooleanValue(SipConfigManager.PREVENT_SCREEN_ROTATION)) {
 			setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_SENSOR);
 		}
 		
 		selectTabWithAction(getIntent());
-		
+	}
+	
+	/**
+	 * Check wether an upgrade is needed
+	 * @return null if not needed, else the new version to upgrade to
+	 */
+	private Integer needUpgrade() {
+		try {
+			PackageInfo pinfo = getPackageManager().getPackageInfo(getPackageName(), 0);
+			int runningVersion = pinfo.versionCode;
+			SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
+			int lastSeenVersion = prefs.getInt(LAST_KNOWN_VERSION_PREF, 0);
+	
+			Log.d(THIS_FILE, "Last known version is " + lastSeenVersion + " and currently we are running " + runningVersion);
+			if (lastSeenVersion != runningVersion) {
+				Compatibility.updateVersion(prefWrapper, lastSeenVersion, runningVersion);
+				return runningVersion;
+			}
+			return null;
+		} catch (NameNotFoundException e) {
+			// Should not happen....or something is wrong with android...
+			Log.e(THIS_FILE, "Not possible to find self name", e);
+		}
+		return null;
 	}
 
 	private void startSipService() {
@@ -207,13 +214,14 @@ public class SipHome extends TabActivity {
 	
 	private void postStartSipService() {
 		// If we have never set fast settings
-		if (!prefWrapper.hasAlreadySetup()) {
-			/*
-			Intent prefsIntent = new Intent(this, PrefsFast.class);
-			prefsIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-			startActivity(prefsIntent);
-			return;
-			*/
+		if(CustomDistribution.showFirstSettingScreen()) {
+			if (!prefWrapper.hasAlreadySetup()) {
+				Intent prefsIntent = new Intent(this, PrefsFast.class);
+				prefsIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+				startActivity(prefsIntent);
+				return;
+			}
+		}else {
 			prefWrapper.setPreferenceBooleanValue(PreferencesWrapper.HAS_ALREADY_SETUP, true);
 			Compatibility.setFirstRunParameters(prefWrapper);
 		}
@@ -286,6 +294,7 @@ public class SipHome extends TabActivity {
 	protected void onPause() {
 		Log.d(THIS_FILE, "On Pause SIPHOME");
 		super.onPause();
+		
 	}
 
 	@Override
@@ -314,7 +323,9 @@ public class SipHome extends TabActivity {
 			}else if(SipManager.ACTION_SIP_DIALER.equalsIgnoreCase(callAction)) {
 				getTabHost().setCurrentTab(0);
 			}else if(SipManager.ACTION_SIP_MESSAGES.equalsIgnoreCase(callAction)) {
-			//	getTabHost().setCurrentTab(2);
+				if(CustomDistribution.supportMessaging()) {
+					getTabHost().setCurrentTab(2);
+				}
 			}
 		}
 	}
@@ -452,7 +463,17 @@ public class SipHome extends TabActivity {
 				ContactsWrapper.getInstance().treatContactPickerPositiveResult(this, data, new OnPhoneNumberSelected() {
 					@Override
 					public void onTrigger(String number) {
-						startActivity(new Intent(Intent.ACTION_CALL, Uri.fromParts("sip", number, null)));
+                        // TODO : filters... how to find a fancy way to integrate it back here 
+ 					    // TODO : Code similar to that in PickupSipUri.onActivityResult() - Refactor
+					    if (number.startsWith("sip:")) {
+					        startActivity(new Intent(Intent.ACTION_CALL, Uri.parse(number)));
+					    } else {
+	                        //Code from android source : com/android/phone/OutgoingCallBroadcaster.java 
+                            // so that we match exactly the same case that an outgoing call from android
+					        number = PhoneNumberUtils.convertKeypadLettersToDigits(number);
+                            number = PhoneNumberUtils.stripSeparators(number);
+                            startActivity(new Intent(Intent.ACTION_CALL, Uri.fromParts("sip", number, null)));
+					    }
 					}
 				});
 				return;

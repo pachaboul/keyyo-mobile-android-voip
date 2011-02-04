@@ -14,10 +14,12 @@
  *
  *  You should have received a copy of the GNU General Public License
  *  along with CSipSimple.  If not, see <http://www.gnu.org/licenses/>.
+ *  
+ *  This file and this file only is released under dual Apache license
  */
 package com.csipsimple.api;
 
-public class SipManager {
+public final class SipManager {
 	// -------
 	// Static constants
 	// -------

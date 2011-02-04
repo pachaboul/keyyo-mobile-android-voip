@@ -15,5 +15,35 @@
  *  You should have received a copy of the GNU General Public License
  *  along with CSipSimple.  If not, see <http://www.gnu.org/licenses/>.
  */
-package com.csipsimple.models;
-parcelable CallInfo;
+package com.csipsimple.wizards.impl;
+
+import com.csipsimple.api.SipConfigManager;
+import com.csipsimple.utils.PreferencesWrapper;
+
+public class WiMobile extends SimpleImplementation {
+
+	@Override
+	protected String getDomain() {
+		return "sip.wimobile.it";
+	}
+
+	@Override
+	protected String getDefaultName() {
+		return "WiMobile";
+	}
+	
+	
+
+	@Override
+	public void setDefaultParams(PreferencesWrapper prefs) {
+		super.setDefaultParams(prefs);
+		prefs.setPreferenceBooleanValue(SipConfigManager.ENABLE_STUN, true);
+		prefs.setPreferenceStringValue(SipConfigManager.STUN_SERVER, "stun.wimobile.it");
+	}
+	
+	@Override
+	public boolean needRestart() {
+		return true;
+	}
+
+}

@@ -32,6 +32,7 @@ import android.widget.Spinner;
 import android.widget.AdapterView.OnItemSelectedListener;
 
 import com.keyyomobile.android.voip.R;
+import com.csipsimple.api.SipProfile;
 import com.csipsimple.db.DBAdapter;
 import com.csipsimple.models.Filter;
 import com.csipsimple.models.Filter.RegExpRepresentation;
@@ -62,9 +63,9 @@ public class EditFilter extends Activity implements OnItemSelectedListener, Text
 		//Get back the concerned account and if any set the current (if not a new account is created)
 		Intent intent = getIntent();
         filterId = intent.getIntExtra(Intent.EXTRA_UID, -1);
-        accountId = intent.getIntExtra(Filter.FIELD_ACCOUNT, -1);
+        accountId = intent.getIntExtra(Filter.FIELD_ACCOUNT, SipProfile.INVALID_ID);
         
-        if(accountId < 0) {
+        if(accountId == SipProfile.INVALID_ID) {
         	Log.e(THIS_FILE, "Invalid account");
         	finish();
         }
@@ -144,7 +145,7 @@ public class EditFilter extends Activity implements OnItemSelectedListener, Text
 			repr.type = Filter.getReplaceForPosition(replaceSpinner.getSelectedItemPosition());
 			filter.setReplaceRepresentation(repr);
 		}else {
-			filter.replace = "";
+			filter.replace_pattern = "";
 		}
 		
 		//Save

@@ -18,10 +18,10 @@
 package com.csipsimple.wizards.impl;
 
 import java.util.HashMap;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
+import android.net.Uri;
 import android.preference.EditTextPreference;
+import android.text.TextUtils;
 
 import com.keyyomobile.android.voip.R;
 import com.csipsimple.api.SipProfile;
@@ -51,28 +51,14 @@ public abstract class AuthorizationImplementation extends BaseImplementation {
 	
 	public void fillLayout(final SipProfile account) {
 		bindFields();
-		
-		
-
-		String display_name = account.display_name;
-		if(display_name.equalsIgnoreCase("")) {
-			display_name = getDefaultName();
-		}
-		accountDisplayName.setText(display_name);
-		
-		
-		String account_cfgid = account.acc_id;
-		if(account_cfgid == null) {
-			account_cfgid = "";
-		}
-		Pattern p = Pattern.compile("<sip:([^@]*)@([^>]*)>");
-		Matcher m = p.matcher(account_cfgid);
-
-		if (m.matches()) {
-			account_cfgid = m.group(1);
+		if(!TextUtils.isEmpty(account.getDisplayName())) {
+			accountDisplayName.setText(account.getDisplayName());
+		}else {
+			accountDisplayName.setText(getDefaultName());
 		}
 		
-		accountUsername.setText(account_cfgid);
+		accountUsername.setText(account.getSipUserName());
+		accountServer.setText(account.getSipDomain());
 		
 		accountPassword.setText(account.data);
 		accountAuthorization.setText(account.username);
@@ -82,8 +68,9 @@ public abstract class AuthorizationImplementation extends BaseImplementation {
 		setStringFieldSummary(DISPLAY_NAME);
 		setStringFieldSummary(USER_NAME);
 		setPasswordFieldSummary(PASSWORD);
-		setPasswordFieldSummary(AUTH_NAME);
-		setPasswordFieldSummary(SERVER);
+		setStringFieldSummary(AUTH_NAME);
+		setStringFieldSummary(SERVER);
+		
 	}
 	
 	private static HashMap<String, Integer>SUMMARIES = new  HashMap<String, Integer>(){/**
@@ -122,20 +109,19 @@ public abstract class AuthorizationImplementation extends BaseImplementation {
 
 	public SipProfile buildAccount(SipProfile account) {
 		account.display_name = accountDisplayName.getText();
-		// TODO add an user display name
-		account.acc_id = "<sip:" + accountUsername.getText() + "@" + getDomain() + ">";
+		account.acc_id = "<sip:" + Uri.encode(accountUsername.getText().trim()) + "@" + getDomain() + ">";
 		
 		String regUri = "sip:" + getDomain();
 		account.reg_uri = regUri;
 		account.proxies = new String[] { regUri } ;
 
 		account.realm = "*";
-		account.username = getText(accountAuthorization);
+		account.username = getText(accountAuthorization).trim();
 		account.data = getText(accountPassword);
 		account.scheme = "Digest";
 		account.datatype = SipProfile.CRED_DATA_PLAIN_PASSWD;
 		account.reg_timeout = 1800;
-		
+		account.transport = SipProfile.TRANSPORT_UDP;
 		return account;
 	}
 

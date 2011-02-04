@@ -34,7 +34,7 @@ import android.widget.Button;
 import com.keyyomobile.android.voip.R;
 import com.csipsimple.api.SipProfile;
 import com.csipsimple.db.DBAdapter;
-import com.csipsimple.service.ISipService;
+import com.csipsimple.api.ISipService;
 import com.csipsimple.service.SipService;
 import com.csipsimple.ui.AccountFilters;
 import com.csipsimple.ui.prefs.GenericPrefs;

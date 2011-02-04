@@ -20,8 +20,6 @@ package com.csipsimple.db;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.pjsip.pjsua.pjsip_status_code;
-
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
@@ -33,6 +31,7 @@ import android.database.sqlite.SQLiteException;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.provider.CallLog;
 
+import com.csipsimple.api.SipCallSession;
 import com.csipsimple.api.SipManager;
 import com.csipsimple.api.SipProfile;
 import com.csipsimple.models.Filter;
@@ -43,7 +42,7 @@ public class DBAdapter {
 	static String THIS_FILE = "SIP ACC_DB";
 
 	private static final String DATABASE_NAME = "com.csipsimple.db";
-	private static final int DATABASE_VERSION = 16;
+	private static final int DATABASE_VERSION = 18;
 	private static final String ACCOUNTS_TABLE_NAME = "accounts";
 	private static final String CALLLOGS_TABLE_NAME = "calllogs";
 	private static final String FILTERS_TABLE_NAME = "outgoing_filters";
@@ -196,6 +195,21 @@ public class DBAdapter {
 					Log.e(THIS_FILE, "Upgrade fail... maybe a crappy rom...", e);
 				}
 				
+			}
+			if(oldVersion < 17) {
+				try {
+					db.execSQL("UPDATE " + ACCOUNTS_TABLE_NAME + " SET " + SipProfile.FIELD_KA_INTERVAL + "=0");
+				}catch(SQLiteException e) {
+					Log.e(THIS_FILE, "Upgrade fail... maybe a crappy rom...", e);
+				}
+			}
+			if(oldVersion < 18) {
+				try {
+					//As many users are crying... remove auto transport and force udp
+					db.execSQL("UPDATE " + ACCOUNTS_TABLE_NAME + " SET " + SipProfile.FIELD_TRANSPORT + "="+SipProfile.TRANSPORT_UDP +" WHERE "+ SipProfile.FIELD_TRANSPORT + "=" + SipProfile.TRANSPORT_AUTO);
+				}catch(SQLiteException e) {
+					Log.e(THIS_FILE, "Upgrade fail... maybe a crappy rom...", e);
+				}
 			}
 
 			onCreate(db);
@@ -453,9 +467,11 @@ public class DBAdapter {
 		return numRows;
 	}
 	
-	public int countAvailableAccountsForNumber(String number) {
+
+	public void removeAllAccounts() {
+		db.delete(FILTERS_TABLE_NAME, "1", null);
+		db.delete(ACCOUNTS_TABLE_NAME, "1", null);
 		
-		return 0;
 	}
 	
 	
@@ -663,14 +679,16 @@ public class DBAdapter {
 				new String[]{
 					"ROWID AS _id",
 					SipMessage.FIELD_FROM, 
+					SipMessage.FIELD_TO, 
+					"CASE WHEN "+SipMessage.FIELD_FROM+"='SELF' THEN "+SipMessage.FIELD_TO+" WHEN "+SipMessage.FIELD_FROM+"!='SELF' THEN "+SipMessage.FIELD_FROM+" END AS message_ordering",
 					SipMessage.FIELD_BODY, 
 					"MAX(" + SipMessage.FIELD_DATE + ") AS " + SipMessage.FIELD_DATE,
 					"MIN(" + SipMessage.FIELD_READ + ") AS " + SipMessage.FIELD_READ,
 					//SipMessage.FIELD_READ,
 					"COUNT(" + SipMessage.FIELD_DATE + ") AS counter"
 				}, 
-				SipMessage.FIELD_TYPE+"="+SipMessage.MESSAGE_TYPE_INBOX, null, 
-				SipMessage.FIELD_FROM, null, 
+				SipMessage.FIELD_TYPE+" in ("+SipMessage.MESSAGE_TYPE_INBOX+","+SipMessage.MESSAGE_TYPE_SENT+")", null, 
+				"message_ordering", null, 
 				SipMessage.FIELD_DATE+" DESC");
 	}
 	
@@ -715,8 +733,8 @@ public class DBAdapter {
 		ContentValues args = new ContentValues();
 		args.put(SipMessage.FIELD_TYPE, messageType);
 		args.put(SipMessage.FIELD_STATUS, status);
-		if(status != pjsip_status_code.PJSIP_SC_OK.swigValue() 
-				&& status != pjsip_status_code.PJSIP_SC_ACCEPTED.swigValue()) {
+		if(status != SipCallSession.StatusCode.OK 
+			&& status != SipCallSession.StatusCode.ACCEPTED ) {
 			args.put(SipMessage.FIELD_BODY, body + " // " + reason);
 		}
 		return db.update(MESSAGES_TABLE_NAME, args,
@@ -725,5 +743,5 @@ public class DBAdapter {
 				SipMessage.FIELD_TYPE+ "="+SipMessage.MESSAGE_TYPE_QUEUED, 
 				new String[] {sTo, body}) > 0;
 	}
-	
+
 }

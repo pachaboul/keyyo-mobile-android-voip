@@ -49,19 +49,20 @@ public class Filter {
 	public static final int ACTION_DIRECTLY_CALL = 3;
 	public static final int ACTION_AUTO_ANSWER = 4;
 	
-	public static final int MATCHER_START = 0;
+	public static final int MATCHER_STARTS = 0;
 	public static final int MATCHER_HAS_N_DIGIT = 1;
 	public static final int MATCHER_HAS_MORE_N_DIGIT = 2;
 	public static final int MATCHER_IS_EXACTLY = 3;
 	public static final int MATCHER_REGEXP = 4;
 	public static final int MATCHER_ENDS = 5;
 	public static final int MATCHER_ALL = 6;
+	public static final int MATCHER_CONTAINS = 7;
 	
 	public static final int REPLACE_PREFIX = 0;
-	public static final int REPLACE_MATCH_TO = 1;
-	public static final int REPLACE_TRANSFORM = 2;
+	public static final int REPLACE_MATCH_BY = 1;
+	public static final int REPLACE_ALL_BY = 2;
 	public static final int REPLACE_REGEXP = 3;
-	public static final int REPLACE_SUFIX = 4;
+	public static final int REPLACE_SUFFIX = 4;
 	
 	
 	public static final String[] full_projection = {
@@ -87,8 +88,9 @@ public class Filter {
 	public Integer id;
 	public Integer priority;
 	public Integer account;
-	public String matches;
-	public String replace;
+	public String match_pattern;
+	public Integer match_type;
+	public String replace_pattern;
 	public Integer action;
 	
 	
@@ -97,6 +99,10 @@ public class Filter {
 		ContentValues args = new ContentValues();
 		DatabaseUtils.cursorRowToContentValues(c, args);
 		
+		createFromContentValue(args);
+	}
+
+	public void createFromContentValue(ContentValues args) {
 		Integer tmp_i;
 		String tmp_s;
 		
@@ -116,15 +122,18 @@ public class Filter {
 		
 		tmp_s = args.getAsString(FIELD_MATCHES);
 		if (tmp_s != null) {
-			matches = tmp_s;
+			match_pattern = tmp_s;
 		}
 		tmp_s = args.getAsString(FIELD_REPLACE);
 		if (tmp_s != null) {
-			replace = tmp_s;
+			replace_pattern = tmp_s;
+		}
+		
+		tmp_i = args.getAsInteger(FIELD_ACCOUNT);
+		if(tmp_i != null) {
+			account = tmp_i;
 		}
 	}
-
-
 
 	public ContentValues getDbContentValues() {
 		ContentValues args = new ContentValues();
@@ -133,8 +142,8 @@ public class Filter {
 			args.put(_ID, id);
 		}
 		args.put(FIELD_ACCOUNT, account);
-		args.put(FIELD_MATCHES, matches);
-		args.put(FIELD_REPLACE, replace);
+		args.put(FIELD_MATCHES, match_pattern);
+		args.put(FIELD_REPLACE, replace_pattern);
 		args.put(FIELD_ACTION, action);
 		args.put(FIELD_PRIORITY, priority);
 		return args;
@@ -149,7 +158,7 @@ public class Filter {
 		String repr = "";
 		repr += matches_array[getPositionForMatcher(m.type)];
 		repr += " "+m.fieldContent;
-		if(!TextUtils.isEmpty(replace) && action == ACTION_REPLACE) {
+		if(!TextUtils.isEmpty(replace_pattern) && action == ACTION_REPLACE) {
 			m = getRepresentationForReplace();
 			repr += "\n";
 			repr += replace_array[getPositionForReplace(m.type)];
@@ -159,10 +168,10 @@ public class Filter {
 	}
 	
 	public boolean canCall(String number) {
-		Log.d(THIS_FILE, "Check if filter is valid for "+number+" >> "+action+" and "+matches);
+		Log.d(THIS_FILE, "Check if filter is valid for "+number+" >> "+action+" and "+match_pattern);
 		if(action == ACTION_CANT_CALL) {
 			try {
-				return !Pattern.matches(matches, number);
+				return !Pattern.matches(match_pattern, number);
 			}catch(PatternSyntaxException e) {
 				Log.e(THIS_FILE, "Invalid pattern ", e);
 			}
@@ -174,7 +183,7 @@ public class Filter {
 	public boolean mustCall(String number) {
 		if(action == ACTION_DIRECTLY_CALL) {
 			try {
-				return Pattern.matches(matches, number);
+				return Pattern.matches(match_pattern, number);
 			}catch(PatternSyntaxException e) {
 				Log.e(THIS_FILE, "Invalid pattern ", e);
 			}
@@ -187,7 +196,7 @@ public class Filter {
 		Log.d(THIS_FILE, "Should stop processing "+number+" ? ");
 		if(action == ACTION_CAN_CALL || action == ACTION_DIRECTLY_CALL) {
 			try {
-				return Pattern.matches(matches, number);
+				return Pattern.matches(match_pattern, number);
 			}catch(PatternSyntaxException e) {
 				Log.e(THIS_FILE, "Invalid pattern ", e);
 			}
@@ -199,9 +208,9 @@ public class Filter {
 	public String rewrite(String number) {
 		if(action == ACTION_REPLACE) {
 			try {
-				Pattern pattern = Pattern.compile(matches);
+				Pattern pattern = Pattern.compile(match_pattern);
 				Matcher matcher = pattern.matcher(number);
-				return matcher.replaceAll(replace); 
+				return matcher.replaceAll(replace_pattern); 
 			}catch(PatternSyntaxException e) {
 				Log.e(THIS_FILE, "Invalid pattern ", e);
 			}catch(ArrayIndexOutOfBoundsException e) {
@@ -215,7 +224,7 @@ public class Filter {
 		if(action == ACTION_AUTO_ANSWER) {
 			try {
 				//TODO : get contact part
-				return Pattern.matches(matches, number);
+				return Pattern.matches(match_pattern, number);
 			}catch(PatternSyntaxException e) {
 				Log.e(THIS_FILE, "Invalid pattern ", e);
 			}
@@ -263,13 +272,14 @@ public class Filter {
 	 * Available matches patterns
 	 */
 	private static HashMap<Integer, Integer> matcherTypePositions = new HashMap<Integer, Integer>() {{
-		put(0, MATCHER_START);
+		put(0, MATCHER_STARTS);
 		put(1, MATCHER_ENDS);
-		put(2, MATCHER_ALL);
-		put(3, MATCHER_HAS_N_DIGIT);
-		put(4, MATCHER_HAS_MORE_N_DIGIT);
-		put(5, MATCHER_IS_EXACTLY);
-		put(6, MATCHER_REGEXP);
+        put(2, MATCHER_CONTAINS);
+		put(3, MATCHER_ALL);
+		put(4, MATCHER_HAS_N_DIGIT);
+		put(5, MATCHER_HAS_MORE_N_DIGIT);
+		put(6, MATCHER_IS_EXACTLY);
+		put(7, MATCHER_REGEXP);
 	}};
 	
 	public static int getMatcherForPosition(Integer selectedItemPosition) {
@@ -282,9 +292,9 @@ public class Filter {
 	
 	private static HashMap<Integer, Integer> replaceTypePositions = new HashMap<Integer, Integer>() {{
 		put(0, REPLACE_PREFIX);
-		put(1, REPLACE_SUFIX);
-		put(2, REPLACE_MATCH_TO);
-		put(3, REPLACE_TRANSFORM);
+		put(1, REPLACE_SUFFIX);
+		put(2, REPLACE_MATCH_BY);
+		put(3, REPLACE_ALL_BY);
 		put(4, REPLACE_REGEXP);
 	}};
 	
@@ -313,51 +323,55 @@ public class Filter {
 	 * @param representation the regexp representation
 	 */
 	public void setMatcherRepresentation(RegExpRepresentation representation) {
+	    match_type = representation.type;
 		switch(representation.type) {
-		case MATCHER_START:
-			matches = "^"+Pattern.quote(representation.fieldContent)+"(.*)$";
+		case MATCHER_STARTS:
+			match_pattern = "^"+Pattern.quote(representation.fieldContent)+"(.*)$";
 			break;
 		case MATCHER_ENDS:
-			matches = "^(.*)"+Pattern.quote(representation.fieldContent)+"$";
+			match_pattern = "^(.*)"+Pattern.quote(representation.fieldContent)+"$";
 			break;
+        case MATCHER_CONTAINS:
+            match_pattern = "^(.*)"+Pattern.quote(representation.fieldContent)+"(.*)$";
+            break;
 		case MATCHER_ALL:
-			matches = "^(.*)$";
+			match_pattern = "^(.*)$";
 			break;
 		case MATCHER_HAS_N_DIGIT:
-			//TODO: is dot the best char?
 			//TODO ... we should probably test the fieldContent type to ensure it's well digits...
-			matches = "^(.{"+representation.fieldContent+"})$";
+			match_pattern = "^(\\d{"+representation.fieldContent+"})$";
 			break;
 		case MATCHER_HAS_MORE_N_DIGIT:
 			//TODO ... we should probably test the fieldContent type to ensure it's well digits...
-			matches = "^(.{"+representation.fieldContent+",})$";
+			match_pattern = "^(\\d{"+representation.fieldContent+",})$";
 			break;
 		case MATCHER_IS_EXACTLY:
-			matches = "^("+Pattern.quote(representation.fieldContent)+")$";
+			match_pattern = "^("+Pattern.quote(representation.fieldContent)+")$";
 			break;
 		case MATCHER_REGEXP:
 		default:
-			matches = representation.fieldContent;
+		    match_type = MATCHER_REGEXP;        // In case hit default:
+			match_pattern = representation.fieldContent;
 			break;
 		}
 	}
 	
 	/**
-	 * Get the represantation for current matcher
+	 * Get the representation for current matcher
 	 * @return RegExpReprestation object with type of matcher and content for matcher 
 	 * (content that should be shown in a text field for user)
 	 */
 	public RegExpRepresentation getRepresentationForMatcher() {
 		RegExpRepresentation repr = new RegExpRepresentation();
-		repr.type = MATCHER_REGEXP;
-		if(matches == null) {
-			repr.type = MATCHER_START;
+		repr.type = match_type =  MATCHER_REGEXP;
+		if(match_pattern == null) {
+			repr.type = MATCHER_STARTS;
 			repr.fieldContent = "";
 			return repr;
 		}else {
-			repr.fieldContent = matches;
+			repr.fieldContent = match_pattern;
 			if( TextUtils.isEmpty(repr.fieldContent) ) {
-				repr.type = MATCHER_START;
+				repr.type = match_type = MATCHER_STARTS;
 				return repr;
 			}
 		}
@@ -365,41 +379,47 @@ public class Filter {
 		Matcher matcher = null;
 		
 		//Well... here we are... Some awful regexp matcher to test a regexp... Isn't it nice?
-		matcher = Pattern.compile("^\\^\\\\Q(.+)\\\\E\\(\\.\\*\\)\\$$").matcher(matches);
+		matcher = Pattern.compile("^\\^\\\\Q(.+)\\\\E\\(\\.\\*\\)\\$$").matcher(match_pattern);
 		if(matcher.matches()) {
-			repr.type = MATCHER_START;
+			repr.type = match_type = MATCHER_STARTS;
 			repr.fieldContent = matcher.group(1);
 			return repr;
 		}
-		matcher = Pattern.compile("^\\^\\(\\.\\*\\)\\\\Q(.+)\\\\E\\$$").matcher(matches);
+		matcher = Pattern.compile("^\\^\\(\\.\\*\\)\\\\Q(.+)\\\\E\\$$").matcher(match_pattern);
 		if(matcher.matches()) {
-			repr.type = MATCHER_ENDS;
+			repr.type = match_type = MATCHER_ENDS;
 			repr.fieldContent = matcher.group(1);
 			return repr;
 		}
+        matcher = Pattern.compile("^\\^\\(\\.\\*\\)\\\\Q(.+)\\\\E\\(\\.\\*\\)\\$$").matcher(match_pattern);
+        if(matcher.matches()) {
+            repr.type = match_type = MATCHER_CONTAINS;
+            repr.fieldContent = matcher.group(1);
+            return repr;
+        }
 		
-		matcher = Pattern.compile("^\\^\\(\\.\\*\\)\\$$").matcher(matches);
+		matcher = Pattern.compile("^\\^\\(\\.\\*\\)\\$$").matcher(match_pattern);
 		if(matcher.matches()) {
-			repr.type = MATCHER_ALL;
+			repr.type = match_type = MATCHER_ALL;
 			repr.fieldContent = "";
 			return repr;
 		}
 		
-		matcher = Pattern.compile("^\\^\\(\\.\\{([0-9]+)\\}\\)\\$$").matcher(matches);
+		matcher = Pattern.compile("^\\^\\(\\\\d\\{([0-9]+)\\}\\)\\$$").matcher(match_pattern);
 		if(matcher.matches()) {
-			repr.type = MATCHER_HAS_N_DIGIT;
+			repr.type = match_type = MATCHER_HAS_N_DIGIT;
 			repr.fieldContent = matcher.group(1);
 			return repr;
 		}
-		matcher = Pattern.compile("^\\^\\(\\.\\{([0-9]+),\\}\\)\\$$").matcher(matches);
+		matcher = Pattern.compile("^\\^\\(\\\\d\\{([0-9]+),\\}\\)\\$$").matcher(match_pattern);
 		if(matcher.matches()) {
-			repr.type = MATCHER_HAS_MORE_N_DIGIT;
+			repr.type = match_type = MATCHER_HAS_MORE_N_DIGIT;
 			repr.fieldContent = matcher.group(1);
 			return repr;
 		}
-		matcher = Pattern.compile("^\\^\\(\\\\Q(.+)\\\\E\\)\\$$").matcher(matches);
+		matcher = Pattern.compile("^\\^\\(\\\\Q(.+)\\\\E\\)\\$$").matcher(match_pattern);
 		if(matcher.matches()) {
-			repr.type = MATCHER_IS_EXACTLY;
+			repr.type = match_type = MATCHER_IS_EXACTLY;
 			repr.fieldContent = matcher.group(1);
 			return repr;
 		}
@@ -412,21 +432,36 @@ public class Filter {
 	public void setReplaceRepresentation(RegExpRepresentation representation){
 		switch(representation.type) {
 		case REPLACE_PREFIX:
-			replace = representation.fieldContent+"$0";
+			replace_pattern = representation.fieldContent+"$0";
 			break;
-		case REPLACE_SUFIX:
-			replace = "$0"+representation.fieldContent;
+		case REPLACE_SUFFIX:
+			replace_pattern = "$0"+representation.fieldContent;
 			break;
-		case REPLACE_MATCH_TO:
-			replace = representation.fieldContent+"$1";
+		case REPLACE_MATCH_BY:
+		    switch (match_type)
+		    {
+		        case MATCHER_STARTS:
+		            replace_pattern = representation.fieldContent+"$1";
+		            break;
+                case MATCHER_ENDS:
+                    replace_pattern = "$1"+representation.fieldContent;
+                    break;
+                case MATCHER_CONTAINS:
+                    replace_pattern = "$1"+representation.fieldContent+"$2";
+                    break;
+                default:
+                    // Other types match the entire input
+                    replace_pattern = representation.fieldContent;
+                    break;
+		    }
 			break;
-		case REPLACE_TRANSFORM:
+		case REPLACE_ALL_BY:
 			//If $ is inside... well, next time will be considered as a regexp
-			replace = representation.fieldContent;
+			replace_pattern = representation.fieldContent;
 			break;
 		case REPLACE_REGEXP:
 		default:
-			replace = representation.fieldContent;
+			replace_pattern = representation.fieldContent;
 			break;
 		}
 	}
@@ -435,14 +470,14 @@ public class Filter {
 	public RegExpRepresentation getRepresentationForReplace() {
 		RegExpRepresentation repr = new RegExpRepresentation();
 		repr.type = REPLACE_REGEXP;
-		if(replace == null) {
-			repr.type = REPLACE_MATCH_TO;
+		if(replace_pattern == null) {
+			repr.type = REPLACE_MATCH_BY;
 			repr.fieldContent = "";
 			return repr;
 		}else {
-			repr.fieldContent = replace;
+			repr.fieldContent = replace_pattern;
 			if( TextUtils.isEmpty(repr.fieldContent) ) {
-				repr.type = REPLACE_MATCH_TO;
+				repr.type = REPLACE_MATCH_BY;
 				return repr;
 			}
 		}
@@ -450,30 +485,45 @@ public class Filter {
 		Matcher matcher = null;
 		
 		
-		matcher = Pattern.compile("^(.+)\\$0$").matcher(replace);
+		matcher = Pattern.compile("^(.+)\\$0$").matcher(replace_pattern);
 		if(matcher.matches()) {
 			repr.type = REPLACE_PREFIX;
 			repr.fieldContent = matcher.group(1);
 			return repr;
 		}
 		
-		matcher = Pattern.compile("^\\$0(.+)$").matcher(replace);
+		matcher = Pattern.compile("^\\$0(.+)$").matcher(replace_pattern);
 		if(matcher.matches()) {
-			repr.type = REPLACE_SUFIX;
+			repr.type = REPLACE_SUFFIX;
 			repr.fieldContent = matcher.group(1);
 			return repr;
 		}
 		
-		matcher = Pattern.compile("^(.+)\\$1$").matcher(replace);
+        switch (match_type)
+        {
+            case MATCHER_STARTS:
+                matcher = Pattern.compile("^(.*)\\$1$").matcher(replace_pattern);
+                break;
+            case MATCHER_ENDS:
+                matcher = Pattern.compile("^\\$1(.*)$").matcher(replace_pattern);
+                break;
+            case MATCHER_CONTAINS:
+                matcher = Pattern.compile("^\\$1(.*)\\$2$").matcher(replace_pattern);
+                break;
+            default:
+                // Other types match the entire input
+                matcher = Pattern.compile("^(.*)$").matcher(replace_pattern);;
+                break;
+        }
 		if(matcher.matches()) {
-			repr.type = REPLACE_MATCH_TO;
+			repr.type = REPLACE_MATCH_BY;
 			repr.fieldContent = matcher.group(1);
 			return repr;
 		}
 		
-		matcher = Pattern.compile("^([^\\$]+)$").matcher(replace);
+		matcher = Pattern.compile("^([^\\$]+)$").matcher(replace_pattern);
 		if(matcher.matches()) {
-			repr.type = REPLACE_TRANSFORM;
+			repr.type = REPLACE_ALL_BY;
 			repr.fieldContent = matcher.group(1);
 			return repr;
 		}
@@ -494,7 +544,7 @@ public class Filter {
 		for (int i = 0; i < numRows; ++i) {
 			Filter f = new Filter();
 			f.createFromDb(c);
-			Log.d(THIS_FILE, "Test filter "+f.matches);
+			Log.d(THIS_FILE, "Test filter "+f.match_pattern);
 			canCall &= f.canCall(number);
 			
 			//Stop processing & rewrite
@@ -521,7 +571,7 @@ public class Filter {
 		for (int i = 0; i < numRows; ++i) {
 			Filter f = new Filter();
 			f.createFromDb(c);
-			Log.d(THIS_FILE, "Test filter "+f.matches);
+			Log.d(THIS_FILE, "Test filter "+f.match_pattern);
 			if(f.mustCall(number)) {
 				c.close();
 				db.close();

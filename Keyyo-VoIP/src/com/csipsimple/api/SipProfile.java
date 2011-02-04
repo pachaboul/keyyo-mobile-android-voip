@@ -14,10 +14,11 @@
  *
  *  You should have received a copy of the GNU General Public License
  *  along with CSipSimple.  If not, see <http://www.gnu.org/licenses/>.
+ *  
+ *  This file and this file only is released under dual Apache license
  */
 package com.csipsimple.api;
 
-import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import android.content.ContentValues;
@@ -27,12 +28,16 @@ import android.os.Parcel;
 import android.os.Parcelable;
 import android.text.TextUtils;
 
+import com.csipsimple.api.SipUri.ParsedSipContactInfos;
+import com.csipsimple.api.SipUri.ParsedSipUriInfos;
 import com.csipsimple.utils.Log;
 
 public class SipProfile implements Parcelable {
+	private static final String THIS_FILE = "SipProfile";
 	
 	//Constants
 	public final static int INVALID_ID = -1;
+	public final static int GSM_ACCOUNT_ID = -2;
 	
 	//Transport choices
 	public final static int TRANSPORT_AUTO = 0;
@@ -132,7 +137,7 @@ public class SipProfile implements Parcelable {
 	public String reg_uri = null;
 	public int publish_enabled = 0;
 	public int reg_timeout = 300;
-	public int ka_interval = 40;
+	public int ka_interval = 0;
 	public String pidf_tuple_id = null;
 	public String force_contact = null;
 	public boolean allow_contact_rewrite = true;
@@ -189,7 +194,6 @@ public class SipProfile implements Parcelable {
 		}
 	};
 
-	private static final String THIS_FILE = "SipProfile";
 
 
 	@Override
@@ -214,7 +218,11 @@ public class SipProfile implements Parcelable {
 		dest.writeInt(ka_interval);
 		dest.writeString(getWriteParcelableString(pidf_tuple_id));
 		dest.writeString(getWriteParcelableString(force_contact));
-		dest.writeString(getWriteParcelableString(TextUtils.join(PROXIES_SEPARATOR, proxies)));
+		if(proxies != null) {
+			dest.writeString(getWriteParcelableString(TextUtils.join(PROXIES_SEPARATOR, proxies)));
+		}else {
+			dest.writeString("");
+		}
 		dest.writeString(getWriteParcelableString(realm));
 		dest.writeString(getWriteParcelableString(username));
 		dest.writeInt(datatype);
@@ -241,6 +249,10 @@ public class SipProfile implements Parcelable {
 	public void createFromDb(Cursor c) {
 		ContentValues args = new ContentValues();
 		DatabaseUtils.cursorRowToContentValues(c, args);
+		createFromContentValue(args);
+	}
+	
+	public void createFromContentValue(ContentValues args) {
 		Integer tmp_i;
 		String tmp_s;
 
@@ -344,7 +356,6 @@ public class SipProfile implements Parcelable {
 		}
 	}
 	
-	
 
 	/**
 	 * Transform pjsua_acc_config into ContentValues that can be insert into database
@@ -394,21 +405,145 @@ public class SipProfile implements Parcelable {
 		return args;
 	}
 	
+	/**
+	 * Get the default domain for this account
+	 * @return the default domain for this account
+	 */
 	public String getDefaultDomain() {
 		String regUri = reg_uri;
 		if(regUri == null) {
 			return null;
 		}
-		
-		Pattern p = Pattern.compile("^(<)?sip(s)?:([^@]*)(>)?$", Pattern.CASE_INSENSITIVE);
-		Matcher m = p.matcher(regUri);
-		Log.v(THIS_FILE, "Try to find into "+regUri);
-		if(!m.matches()) {
-			Log.e(THIS_FILE, "Default domain can't be guessed from regUri of this account");
-			return null;
+		ParsedSipUriInfos parsedInfo = SipUri.parseSipUri(regUri);
+		if(parsedInfo.domain != null ) {
+			String dom = parsedInfo.domain;
+			if(parsedInfo.port != 5060) {
+				dom += ":"+Integer.toString(parsedInfo.port);
+			}
+			return dom;
+		}else {
+			Log.d(THIS_FILE, "Domain not found in "+regUri);
 		}
-		return m.group(3);
+		return null;
 	}
 	
-
+	
+	// Android API
+	
+	/**
+	 * Gets the flag of 'Auto Registration'
+	 * @return true if auto register this account
+	 */
+	public boolean getAutoRegistration() {
+		return true;
+	}
+	
+	
+	/**
+	 * Gets the display name of the user.
+	 * @return the caller id for this account
+	 */
+	public String getDisplayName() {
+		if(acc_id != null) {
+			ParsedSipContactInfos parsed = SipUri.parseSipContact(acc_id);
+			if(parsed.displayName != null) {
+				return parsed.displayName;
+			}
+		}
+		return "";
+	}
+	
+	/**
+	 * Gets the password.
+	 * @return
+	 */
+	public String getPassword() {
+		return data;
+	}
+	
+	/**
+	 * Gets the port number of the SIP server.
+	 * @return
+	 */
+	public int getPort() {
+		ParsedSipUriInfos parsedInfo = SipUri.parseSipUri(reg_uri);
+		return parsedInfo.port;
+	}
+	
+	/**
+	 * Gets the (user-defined) name of the profile.
+	 * @return
+	 */
+	public String getProfileName() {
+		return display_name;
+	}
+	
+	/**
+	 * Get the transport used for this account
+	 * @return "TCP" or "UDP" or "TLS" or "AUTO"
+	 */
+	public String getProtocol() {
+		switch (transport) {
+		case TRANSPORT_AUTO:
+			return "AUTO";
+		case TRANSPORT_UDP:
+			return "UDP";
+		case TRANSPORT_TCP:
+			return "TCP";
+		case TRANSPORT_TLS:
+			return "TLS";
+		default:
+			return "UDP";
+		}
+	}
+	
+	/**
+	 * Gets the network address of the server outbound proxy.
+	 * @return the first proxy server if any else empty string
+	 */
+	public String getProxyAddress() {
+		if(proxies != null && proxies.length > 0) {
+			return proxies[0];
+		}
+		return "";
+	}
+	
+	
+	/**
+	 * Keep alive
+	 * @return
+	 */
+	public boolean getSendKeepAlive() {
+		return true;
+	}
+	
+	/**
+	 * Gets the SIP domain when acc_id is username@domain.
+	 * @return the sip domain for this account
+	 */
+	public String getSipDomain() {
+		ParsedSipContactInfos parsed = SipUri.parseSipContact(acc_id);
+		if(parsed.domain != null) {
+			return parsed.domain;
+		}
+		return "";
+	}
+	/**
+	 * Gets the SIP URI string of this profile.
+	 */
+	public String getUriString() {
+		return acc_id;
+	}
+	
+	/**
+	 *  Gets the username when acc_id is username@domain.
+	 *  WARNING : this is different from username of SipProfile which is the authentication name cause of pjsip naming
+	 */
+	public String getSipUserName() {
+		ParsedSipContactInfos parsed = SipUri.parseSipContact(acc_id);
+		if(parsed.userName != null) {
+			return parsed.userName;
+		}
+		return "";
+	}
 }

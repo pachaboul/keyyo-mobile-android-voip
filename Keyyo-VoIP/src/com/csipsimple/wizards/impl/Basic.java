@@ -18,13 +18,14 @@
 package com.csipsimple.wizards.impl;
 
 import java.util.HashMap;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
+import android.net.Uri;
 import android.preference.EditTextPreference;
 
 import com.keyyomobile.android.voip.R;
 import com.csipsimple.api.SipProfile;
+import com.csipsimple.api.SipUri;
+import com.csipsimple.api.SipUri.ParsedSipContactInfos;
 import com.csipsimple.utils.Log;
 
 public class Basic extends BaseImplementation {
@@ -46,23 +47,18 @@ public class Basic extends BaseImplementation {
 		bindFields();
 		
 		accountDisplayName.setText(account.display_name);
-		String server = "";
-		String account_cfgid = account.acc_id;
-		if(account_cfgid == null) {
-			account_cfgid = "";
-		}
-		Pattern p = Pattern.compile("[^<]*<sip:([^@]*)@([^>]*)>");
-		Matcher m = p.matcher(account_cfgid);
-
-		if (m.matches()) {
-			account_cfgid = m.group(1);
-			server = m.group(2);
-		}
 		
 
-		accountUserName.setText(account_cfgid);
-		accountServer.setText(server);
+		String serverFull = account.reg_uri;
+		if (serverFull == null) {
+			serverFull = "";
+		}else {
+			serverFull = serverFull.replaceFirst("sip:", "");
+		}
 		
+		ParsedSipContactInfos parsedInfo = SipUri.parseSipContact(account.acc_id);		
+		accountUserName.setText(parsedInfo.userName);
+		accountServer.setText(serverFull);
 		accountPassword.setText(account.data);
 	}
 
@@ -107,9 +103,10 @@ public class Basic extends BaseImplementation {
 
 	public SipProfile buildAccount(SipProfile account) {
 		Log.d(THIS_FILE, "begin of save ....");
-		account.display_name = accountDisplayName.getText();
-		// TODO add an user display name
-		account.acc_id = "<sip:" + accountUserName.getText() + "@"+accountServer.getText()+">";
+		account.display_name = accountDisplayName.getText().trim();
+		
+		String[] serverParts = accountServer.getText().split(":");
+		account.acc_id = "<sip:" + Uri.encode(accountUserName.getText()).trim() + "@"+serverParts[0].trim()+">";
 		
 		String regUri = "sip:" + accountServer.getText();
 		account.reg_uri = regUri;
@@ -117,7 +114,7 @@ public class Basic extends BaseImplementation {
 
 
 		account.realm = "*";
-		account.username = getText(accountUserName);
+		account.username = getText(accountUserName).trim();
 		account.data = getText(accountPassword);
 		account.scheme = "Digest";
 		account.datatype = SipProfile.CRED_DATA_PLAIN_PASSWD;
