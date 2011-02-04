@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
-<manifest android:installLocation="auto"
-	android:versionName="0.00-17" android:versionCode="21" package="com.keyyomobile.android.voip" 
-	xmlns:android="http://schemas.android.com/apk/res/android">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android" package="com.keyyomobile.android.voip"
+	android:installLocation="auto"
+	android:versionName="0.01-01" android:versionCode="22">
 	<supports-screens android:smallScreens="true" 
 		android:normalScreens="true"
 		android:largeScreens="true"
@@ -72,10 +72,12 @@
 		<activity android:name="com.csipsimple.ui.BuddyList"></activity>
 
 		<!-- Preferences -->
-		<activity android:name="com.csipsimple.ui.prefs.MainPrefs" android:theme="@android:style/Theme.NoTitleBar" android:configChanges="orientation"></activity>
-		<activity android:name="com.csipsimple.ui.prefs.PrefsNetwork" android:theme="@android:style/Theme.NoTitleBar" android:configChanges="orientation"></activity>
-		<activity android:name="com.csipsimple.ui.prefs.PrefsMedia" android:theme="@android:style/Theme.NoTitleBar" android:configChanges="orientation"></activity>
-		<activity android:name="com.csipsimple.ui.prefs.PrefsUI" android:theme="@android:style/Theme.NoTitleBar" android:configChanges="orientation"></activity>
+		<activity android:name="com.csipsimple.ui.prefs.MainPrefs" android:theme="@android:style/Theme.NoTitleBar" android:configChanges="orientation"/>
+		<activity android:name="com.csipsimple.ui.prefs.PrefsNetwork" android:theme="@android:style/Theme.NoTitleBar" android:configChanges="orientation"/>
+		<activity android:name="com.csipsimple.ui.prefs.PrefsMedia" android:theme="@android:style/Theme.NoTitleBar" android:configChanges="orientation"/>
+		<activity android:name="com.csipsimple.ui.prefs.PrefsUI" android:theme="@android:style/Theme.NoTitleBar" android:configChanges="orientation"/>
+		<activity android:name="com.csipsimple.ui.prefs.PrefsCalls" android:theme="@android:style/Theme.NoTitleBar" android:configChanges="orientation"/>
+		<activity android:name="com.csipsimple.ui.prefs.PrefsFilters" android:theme="@android:style/Theme.NoTitleBar" android:configChanges="orientation"/>
 		<activity android:name="com.csipsimple.ui.prefs.PrefsFast" android:label="@string/prefs_fast" 
 			android:theme="@style/CupcakeDialog" android:screenOrientation="portrait">
 			<intent-filter>
@@ -95,6 +97,7 @@
 			<intent-filter android:priority="-1">
 				<action android:name="android.intent.action.NEW_OUTGOING_CALL"></action>
 			</intent-filter>
+			
 		</receiver>
 		<activity android:name="com.csipsimple.ui.OutgoingCallChooser" android:theme="@style/CupcakeDialog"
 			android:configChanges="orientation"
@@ -107,25 +110,78 @@
                 <data android:scheme="sips" />
             </intent-filter>
             
-            <!-- 
+			<intent-filter android:priority="-1">
+				<action android:name="android.phone.extra.NEW_CALL_INTENT"></action>
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:scheme="sip" />
+                <data android:scheme="sips" />
+			</intent-filter>
+            
             <intent-filter>
                 <action android:name="android.intent.action.SENDTO" />
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
                 <data android:scheme="sip" />
+                <data android:scheme="sips" />
+                <data android:scheme="imto" />
 			 </intent-filter>
-			  -->
+			
 		</activity>
 		
+		 <activity-alias android:name="PrivilegedOutgoingCallBroadcaster"
+	               android:targetActivity="com.csipsimple.ui.OutgoingCallChooser" android:theme="@style/CupcakeDialog"
+				android:configChanges="orientation"
+				android:launchMode="singleInstance"
+                 android:permission="android.permission.CALL_PRIVILEGED">
+                 <!--  
+             <intent-filter>
+                 <action android:name="android.intent.action.CALL_PRIVILEGED" />
+                 <category android:name="android.intent.category.DEFAULT" />
+                 <data android:scheme="tel" />
+             </intent-filter>
+             <intent-filter>
+                 <action android:name="android.intent.action.CALL_PRIVILEGED" />
+                 <category android:name="android.intent.category.DEFAULT" />
+                 <data android:mimeType="vnd.android.cursor.item/phone" />
+                 <data android:mimeType="vnd.android.cursor.item/phone_v2" />
+                 <data android:mimeType="vnd.android.cursor.item/person" />
+             </intent-filter>
+             -->
+             <intent-filter>
+                 <action android:name="android.intent.action.CALL_PRIVILEGED" />
+                 <category android:name="android.intent.category.DEFAULT" />
+                 <data android:scheme="sip" />
+             </intent-filter>
+         </activity-alias>
+		 
 		
-		<activity android:name="com.csipsimple.ui.InCallActivity" android:screenOrientation="portrait" android:excludeFromRecents="true"
-			android:noHistory="true" android:allowTaskReparenting="false"
-			android:theme="@android:style/Theme.NoTitleBar" android:launchMode="singleInstance">
+		<activity android:name="com.csipsimple.ui.InCallActivity" 
+			android:screenOrientation="portrait" 
+			android:configChanges="orientation"
+			android:allowTaskReparenting="true"
+			android:excludeFromRecents="true"
+			android:taskAffinity=""
+			android:theme="@android:style/Theme.NoTitleBar" android:launchMode="singleTask">
 			<intent-filter android:priority="10">
                  <action android:name="com.csipsimple.phone.action.INCALL" />
                  <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
+             
+		</activity>
+		
+		<activity android:name="com.csipsimple.ui.InCallActivity2" 
+			android:excludeFromRecents="true"
+			android:screenOrientation="portrait" 
+			android:configChanges="orientation"
+			android:allowTaskReparenting="true"
+			android:taskAffinity=""
+			android:theme="@android:style/Theme.NoTitleBar" android:launchMode="singleTask">
+		<!-- 	<intent-filter android:priority="10">
+                 <action android:name="com.csipsimple.phone.action.INCALL" />
+                 <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+            -->
 		</activity>
 		
 		<activity android:name="com.csipsimple.ui.PickupSipUri" android:label="@string/pickup_sip_uri" 
@@ -134,6 +190,7 @@
         
         <activity android:name="com.csipsimple.ui.InCallMediaControl" android:label="@string/prefs_media" 
         	android:configChanges="orientation"
+        	android:taskAffinity="com.csipsimple.ui.InCallActivity"
 			android:theme="@style/CupcakeDialog"></activity>
         
         <receiver android:name="com.csipsimple.service.HeadsetButtonReceiver"></receiver>
@@ -164,7 +221,10 @@
 		
 	</application>
 	<uses-sdk android:minSdkVersion="3" />
-
+	<!-- 
+	<uses-permission android:name="android.permission.CALL_PRIVILEGED" />
+ 	-->
+ 	
 	<uses-permission android:name="android.permission.INTERNET"></uses-permission>
 	<uses-permission android:name="android.permission.RECORD_AUDIO"></uses-permission>
 	<uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS"></uses-permission>
@@ -177,6 +237,7 @@
 	<uses-permission android:name="android.permission.READ_CONTACTS"></uses-permission>
 	<uses-permission android:name="android.permission.WRITE_CONTACTS"></uses-permission>
 	<uses-permission android:name="android.permission.CALL_PHONE"></uses-permission>
+	<uses-permission android:name="android.permission.CALL_PRIVILEGED" />
 	<uses-permission android:name="android.permission.WAKE_LOCK"></uses-permission>
 	<uses-permission android:name="android.permission.DISABLE_KEYGUARD"></uses-permission>
 	<uses-permission android:name="android.permission.VIBRATE"></uses-permission>
@@ -184,5 +245,11 @@
 	<uses-permission android:name="android.permission.READ_LOGS" />
 	 <!-- Not taken into account? -->
 	<uses-permission android:name="android.permission.RAISED_THREAD_PRIORITY"></uses-permission>
+	
+	
+	<uses-feature android:name="android.hardware.wifi" android:required="false"></uses-feature>
+	<uses-feature android:name="android.hardware.telephony" android:required="false"></uses-feature>
+	<uses-feature android:name="android.hardware.microphone" android:required="true"></uses-feature>
+	<uses-feature android:name="android.hardware.touchscreen" android:required="false"></uses-feature>
 	
 </manifest> 
