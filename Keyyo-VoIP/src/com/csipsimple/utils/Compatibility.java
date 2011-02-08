@@ -203,41 +203,42 @@ public class Compatibility {
 	
 	private static void resetCodecsSettings(PreferencesWrapper preferencesWrapper) {
 		//Disable iLBC if not armv7
-		boolean supportFloating = getCpuAbi().equalsIgnoreCase("armeabi-v7a");
+		//boolean supportFloating = getCpuAbi().equalsIgnoreCase("armeabi-v7a");
 		
+		//Keyyo settings
 		
-		//For Narrowband
-		preferencesWrapper.setCodecPriority("PCMU/8000/1", SipConfigManager.CODEC_NB, "60");
-		preferencesWrapper.setCodecPriority("PCMA/8000/1", SipConfigManager.CODEC_NB, "50");
-		preferencesWrapper.setCodecPriority("speex/8000/1", SipConfigManager.CODEC_NB, "220");
-		preferencesWrapper.setCodecPriority("speex/16000/1", SipConfigManager.CODEC_NB, "0");
-		preferencesWrapper.setCodecPriority("speex/32000/1", SipConfigManager.CODEC_NB, "0");
-		preferencesWrapper.setCodecPriority("GSM/8000/1", SipConfigManager.CODEC_NB, "230");
-		preferencesWrapper.setCodecPriority("G722/16000/1", SipConfigManager.CODEC_NB, "0");
-		preferencesWrapper.setCodecPriority("G729/8000/1", SipConfigManager.CODEC_NB, "0");
-		preferencesWrapper.setCodecPriority("iLBC/8000/1", SipConfigManager.CODEC_NB, supportFloating ? "240" : "0");
-		preferencesWrapper.setCodecPriority("SILK/8000/1", SipConfigManager.CODEC_NB, "235");
+		//Only G711a/u and g722 on WB
+		preferencesWrapper.setCodecPriority("PCMU/8000/1", SipConfigManager.CODEC_WB,"244");
+		preferencesWrapper.setCodecPriority("PCMA/8000/1", SipConfigManager.CODEC_WB,"243");
+		preferencesWrapper.setCodecPriority("G722/16000/1", SipConfigManager.CODEC_WB,"245");
+		preferencesWrapper.setCodecPriority("iLBC/8000/1", SipConfigManager.CODEC_WB,"0");
+		preferencesWrapper.setCodecPriority("speex/8000/1", SipConfigManager.CODEC_WB,"0");
+		preferencesWrapper.setCodecPriority("speex/16000/1", SipConfigManager.CODEC_WB,"0");
+		preferencesWrapper.setCodecPriority("speex/32000/1", SipConfigManager.CODEC_WB,"0");
+		preferencesWrapper.setCodecPriority("GSM/8000/1", SipConfigManager.CODEC_WB, "0");
+		preferencesWrapper.setCodecPriority("SILK/8000/1", SipConfigManager.CODEC_NB, "0");
 		preferencesWrapper.setCodecPriority("SILK/12000/1", SipConfigManager.CODEC_NB, "0");
 		preferencesWrapper.setCodecPriority("SILK/16000/1", SipConfigManager.CODEC_NB, "0");
 		preferencesWrapper.setCodecPriority("SILK/24000/1", SipConfigManager.CODEC_NB, "0");
-		preferencesWrapper.setCodecPriority("CODEC2/8000/1", SipConfigManager.CODEC_NB, "237");
+		preferencesWrapper.setCodecPriority("CODEC2/8000/1", SipConfigManager.CODEC_NB, "0");
+		preferencesWrapper.setCodecPriority("G729/8000/1", SipConfigManager.CODEC_NB, "0");
 		
 		
-		//For Wideband
-		preferencesWrapper.setCodecPriority("PCMU/8000/1", SipConfigManager.CODEC_WB, "60");
-		preferencesWrapper.setCodecPriority("PCMA/8000/1", SipConfigManager.CODEC_WB, "50");
-		preferencesWrapper.setCodecPriority("speex/8000/1", SipConfigManager.CODEC_WB, "70"); /*This is for addressing asterisk bug */
-		preferencesWrapper.setCodecPriority("speex/16000/1", SipConfigManager.CODEC_WB, "219");
-		preferencesWrapper.setCodecPriority("speex/32000/1", SipConfigManager.CODEC_WB, "220");
-		preferencesWrapper.setCodecPriority("GSM/8000/1", SipConfigManager.CODEC_WB, "0");
-		preferencesWrapper.setCodecPriority("G722/16000/1", SipConfigManager.CODEC_WB, "235");
-		preferencesWrapper.setCodecPriority("G729/8000/1", SipConfigManager.CODEC_WB, "0");
-		preferencesWrapper.setCodecPriority("iLBC/8000/1", SipConfigManager.CODEC_WB, supportFloating ? "100" : "0");
+		//On NB 
+		preferencesWrapper.setCodecPriority("PCMU/8000/1", SipConfigManager.CODEC_NB,"244");
+		preferencesWrapper.setCodecPriority("PCMA/8000/1", SipConfigManager.CODEC_NB,"243");
+		preferencesWrapper.setCodecPriority("G722/16000/1", SipConfigManager.CODEC_NB,"245");
+		preferencesWrapper.setCodecPriority("iLBC/8000/1", SipConfigManager.CODEC_NB,"0");
+		preferencesWrapper.setCodecPriority("speex/8000/1", SipConfigManager.CODEC_NB,"0");
+		preferencesWrapper.setCodecPriority("speex/16000/1", SipConfigManager.CODEC_NB,"0");
+		preferencesWrapper.setCodecPriority("speex/32000/1", SipConfigManager.CODEC_NB,"0");
+		preferencesWrapper.setCodecPriority("GSM/8000/1", SipConfigManager.CODEC_NB, "0");		
 		preferencesWrapper.setCodecPriority("SILK/8000/1", SipConfigManager.CODEC_WB, "0");
 		preferencesWrapper.setCodecPriority("SILK/12000/1", SipConfigManager.CODEC_WB, "0");
 		preferencesWrapper.setCodecPriority("SILK/16000/1", SipConfigManager.CODEC_WB, "0");
 		preferencesWrapper.setCodecPriority("SILK/24000/1", SipConfigManager.CODEC_WB, "0");
 		preferencesWrapper.setCodecPriority("CODEC2/8000/1", SipConfigManager.CODEC_WB, "0");
+		preferencesWrapper.setCodecPriority("G729/8000/1", SipConfigManager.CODEC_NB, "0");
 		
 		
 		// Bands repartition
