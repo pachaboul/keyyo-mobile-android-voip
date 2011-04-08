@@ -10,6 +10,8 @@ Cette foire aux question a pour but de rassembler le maximum d'unformation conce
 
 La VoIP - voix sur IP - est une technologie de téléphonie à travers Internet. Associée au protocole SIP, elle permet de téléphoner, moyennant un compte SIP / VoIP Keyyo.
 
+Pour que cela fonctionne, votre téléphone doit donc avoir une connexion data internet. Cela nécessite donc que le téléphone soit *connecté* en Wi-Fi. Sans cela seul les appels GSM seront possibles.
+
 = Quels sont les mobiles supportés =
 Les mobiles supportés sont
   * HTC Desire HD 2.2 et 2.2.1
@@ -34,6 +36,8 @@ L'application ne fonctionnera pas sur réseau mobile (3G/Edge) du fait de limita
 = Puis-je appeler de l'étranger en VoIP ? =
 
 Oui ! Et c'est une des fonctionnalités de la VoIP. Dès que vous avez une connexion Wi-Fi disponible, l'accès au service de téléphonie VoIP est automatique avec Keyyo VoIP. Il n'y a aucun surcoût. Le seul peut-être nécessaire est le coût de connexion au Hotspot Wi-Fi.
+
+Cela fonctionne aussi en sens inverse. Préférez la VoIP lorsque vous appelez vers l'étranger pour diminuer vos coûts de communication.
 
 = Comment utiliser mon compte SIP / VoIP =
 
