@@ -46,7 +46,6 @@ import com.csipsimple.widgets.RegistrationNotification;
 public class SipNotifications {
 
 	private NotificationManager notificationManager;
-	private RegistrationNotification contentView;
 	private Notification inCallNotification;
 	private Context context;
 	private Notification missedCallNotification;
@@ -59,15 +58,23 @@ public class SipNotifications {
 	public static final int MESSAGE_NOTIF_ID = REGISTER_NOTIF_ID + 3;
 	public static final int VOICEMAIL_NOTIF_ID = REGISTER_NOTIF_ID + 4;
 	
+	private static boolean isInit = false;
+	
 	public SipNotifications(Context aContext) {
 		context = aContext;
 		notificationManager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
+		
+		if(!isInit) {
+			cancelAll();
+			cancelCalls();
+			isInit = true;
+		}
 	}
 	
 	//Announces
 
 	//Register
-	public void notifyRegisteredAccounts(ArrayList<SipProfileState> activeAccountsInfos) {
+	public synchronized void notifyRegisteredAccounts(ArrayList<SipProfileState> activeAccountsInfos, boolean showNumbers) {
 		int icon = R.drawable.sipok;
 		CharSequence tickerText = context.getString(R.string.service_ticker_registered_text);
 		long when = System.currentTimeMillis();
@@ -78,9 +85,8 @@ public class SipNotifications {
 		notificationIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
 		PendingIntent contentIntent = PendingIntent.getActivity(context, 0, notificationIntent, PendingIntent.FLAG_UPDATE_CURRENT);
 
-		if (contentView == null) {
-			contentView = new RegistrationNotification(context.getPackageName());
-		}
+		
+		RegistrationNotification contentView = new RegistrationNotification(context.getPackageName());
 		contentView.clearRegistrations();
 		contentView.addAccountInfos(context, activeAccountsInfos);
 
@@ -88,9 +94,11 @@ public class SipNotifications {
 		// contentText, contentIntent);
 		notification.contentIntent = contentIntent;
 		notification.contentView = contentView;
-		notification.flags = Notification.FLAG_ONGOING_EVENT | Notification.FLAG_NO_CLEAR;
-		// notification.flags = Notification.FLAG_FOREGROUND_SERVICE;
-
+		notification.flags = Notification.FLAG_ONGOING_EVENT | Notification.FLAG_NO_CLEAR | Notification.FLAG_ONLY_ALERT_ONCE;
+		if(showNumbers) {
+			notification.number = activeAccountsInfos.size();
+		}
+		
 		notificationManager.notify(REGISTER_NOTIF_ID, notification);
 	}
 
@@ -148,11 +156,11 @@ public class SipNotifications {
 		}
 		//CharSequence tickerText = context.getText(R.string.instance_message);
 		if(!msg.getFrom().equalsIgnoreCase(viewingRemoteFrom)) {
-			String from = SipUri.getDisplayedSimpleContact(msg.getFrom());
+			String from = msg.getDisplayName();
 			CharSequence tickerText = buildTickerMessage(context, from, msg.getBody());
 			
 			if(messageNotification == null) {
-				messageNotification = new Notification(SipUri.isPhoneNumber(from)?R.drawable.stat_notify_sms: android.R.drawable.stat_notify_chat, tickerText, System.currentTimeMillis());
+				messageNotification = new Notification(SipUri.isPhoneNumber(from) ? R.drawable.stat_notify_sms: android.R.drawable.stat_notify_chat, tickerText, System.currentTimeMillis());
 				messageNotification.flags = Notification.FLAG_ONLY_ALERT_ONCE | Notification.FLAG_SHOW_LIGHTS | Notification.FLAG_AUTO_CANCEL;
 				messageNotification.defaults |= Notification.DEFAULT_SOUND;
 				messageNotification.defaults |= Notification.DEFAULT_LIGHTS;

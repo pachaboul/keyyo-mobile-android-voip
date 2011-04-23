@@ -24,7 +24,7 @@
 		android:id="@+id/dialer_edit_text" 
 		android:layout_width="fill_parent" android:layout_height="fill_parent" android:layout_weight="1"
 		android:gravity="center_horizontal" />
-		
+	
 	<LinearLayout android:id="@+id/dial_actions"
 		android:layout_width="fill_parent" android:layout_centerHorizontal="true"
 		android:layout_height="wrap_content" android:layout_marginTop="2dip"
@@ -35,7 +35,7 @@
 		<ImageButton android:layout_width="87dip"
 			android:layout_height="50dip" android:layout_gravity="center_vertical|top"
 			android:state_enabled="false" android:background="@drawable/btn_dial_domain"
-			android:src="@drawable/ic_tab_unselected_dialer" android:id="@+id/domainTextButton" />
+			android:src="@drawable/ic_dial_action_voice_mail" android:id="@+id/vmButton2" />
 
 		<ImageButton android:layout_height="50dip"
 			android:layout_gravity="center_vertical|top" android:layout_weight="1"

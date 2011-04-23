@@ -95,6 +95,9 @@ public class Help extends Activity implements OnClickListener {
 		LinearLayout line;
 		line = (LinearLayout) findViewById(R.id.faq_line);
 		line.setOnClickListener(this);
+		if(CustomDistribution.getFaqLink() == null) {
+			line.setVisibility(View.GONE);
+		}
 		line = (LinearLayout) findViewById(R.id.record_logs_line);
 		line.setOnClickListener(this);
 		if(CustomDistribution.getSupportEmail() == null) {
@@ -120,6 +123,13 @@ public class Help extends Activity implements OnClickListener {
 		// Revision
 		TextView rev = (TextView) findViewById(R.id.revision);
 		rev.setText(CollectLogs.getApplicationInfo(this));
+		
+
+		// Do never remove this line else the distributed software may not respect some MIT license
+		// Besides remember that the application is released under GPL which mean any distribution of the app
+		// must be done under GPL license terms. Else you can be sued for not respecting GPL license terms
+		line = (LinearLayout) findViewById(R.id.legal_line);
+		line.setOnClickListener(this);
 	}
 	
 	@Override
@@ -176,6 +186,12 @@ public class Help extends Activity implements OnClickListener {
 			it.setData(Uri.parse("http://code.google.com/p/csipsimple/issues"));
 			startActivity(it);
 			break;
+			
+		case R.id.legal_line:
+			// Do never remove this line else the distributed software may not respect some MIT license
+			// Besides remember that the application is released under GPL which mean any distribution of the app
+			// must be done under GPL license terms. Else you can be sued for not respecting GPL license terms
+			startActivity(new Intent(this, Legal.class));
 		default:
 			break;
 		}

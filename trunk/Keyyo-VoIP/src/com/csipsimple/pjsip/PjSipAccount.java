@@ -19,6 +19,7 @@ package com.csipsimple.pjsip;
 
 import org.pjsip.pjsua.pj_str_t;
 import org.pjsip.pjsua.pjmedia_srtp_use;
+import org.pjsip.pjsua.pjmedia_zrtp_use;
 import org.pjsip.pjsua.pjsip_cred_info;
 import org.pjsip.pjsua.pjsua;
 import org.pjsip.pjsua.pjsuaConstants;
@@ -47,7 +48,7 @@ public class PjSipAccount {
 	public Integer id;
 	public Integer transport = 0;
 	
-	
+	private boolean hasZrtpValue = false;
 
 	
 	
@@ -85,6 +86,9 @@ public class PjSipAccount {
 		if(profile.reg_timeout != -1) {
 			cfg.setReg_timeout(profile.reg_timeout);
 		}
+		if(profile.reg_delay_before_refresh != -1) {
+			cfg.setReg_delay_before_refresh(profile.reg_delay_before_refresh);
+		}
 		if(profile.ka_interval != -1) {
 			cfg.setKa_interval(profile.ka_interval);
 		}
@@ -103,6 +107,10 @@ public class PjSipAccount {
 			cfg.setUse_srtp(pjmedia_srtp_use.swigToEnum(profile.use_srtp));
 			cfg.setSrtp_secure_signaling(0);
 		}
+		if(profile.use_zrtp != -1 && profile.use_zrtp > 0) {
+			cfg.setUse_zrtp(pjmedia_zrtp_use.swigToEnum(profile.use_zrtp));
+			hasZrtpValue = true;
+		}
 		
 		if(profile.proxies != null) {
 			Log.d("PjSipAccount", "Create proxy "+profile.proxies.length);
@@ -118,6 +126,7 @@ public class PjSipAccount {
 		}else {
 			cfg.setProxy_cnt(0);
 		}
+		cfg.setReg_use_proxy(profile.reg_use_proxy);
 
 		if(profile.username != null || profile.data != null) {
 			cfg.setCred_count(1);
@@ -201,6 +210,15 @@ public class PjSipAccount {
 				cfg.setId(pjsua.pj_str_copy(parsedInfos.toString()));
 			}
 		}
+		
+		if(!hasZrtpValue) {
+			int useZrtp = prefs.getPreferenceIntegerValue(SipConfigManager.USE_ZRTP);
+			if(useZrtp == 1 || useZrtp == 2) {
+				cfg.setUse_zrtp(pjmedia_zrtp_use.swigToEnum(useZrtp));
+			}
+			Log.d("Pj profile", "--> added zrtp "+ useZrtp);
+		}
+		
 	}
 	
 	
