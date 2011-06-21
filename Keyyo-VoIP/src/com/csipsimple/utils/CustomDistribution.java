@@ -72,6 +72,9 @@ public class CustomDistribution {
 	public static boolean showFirstSettingScreen() {
 		return false;
 	}
-	
+
+	public static boolean forceNoMultipleCalls() {
+		return false;
+	}
 	
 }
