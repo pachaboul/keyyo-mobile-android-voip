@@ -4,6 +4,10 @@
     <item>Digest</item>
     <item>PGP</item>
   </string-array>
+  <string-array name="data_type_choices">
+    <item>Contraseña plana</item>
+    <item>Resumen de datos.</item>
+  </string-array>
   <string-array name="clock_rate_choices">
     <item>8KHz</item>
     <item>16KHz</item>
@@ -14,6 +18,10 @@
     <item>Desactivado</item>
     <item>Opcional</item>
     <item>Obligatorio</item>
+  </string-array>
+  <string-array name="contact_rewrite_method_choices">
+    <item>Herencia</item>
+    <item>Normal</item>
   </string-array>
   <string-array name="transport_choices">
     <item>Auto</item>
@@ -27,5 +35,23 @@
     <item>SSLv2</item>
     <item>SSL3</item>
     <item>SSL23</item>
+  </string-array>
+  <string-array name="gsm_integration_type_choices">
+    <item>Auto</item>
+    <item>Forzar</item>
+    <item>Prevenir</item>
+  </string-array>
+  <string-array name="dial_press_mode_choices">
+    <item>Usar configuración de Android</item>
+    <item>Forzar</item>
+    <item>Prevenir</item>
+  </string-array>
+  <string-array name="band_types_name">
+    <item>Banda Estrecha</item>
+    <item>Banda Ancha</item>
+  </string-array>
+  <string-array name="use_zrtp_choices">
+    <item>SIn ZRTP</item>
+    <item>Creado ZRTP</item>
   </string-array>
 </resources>

@@ -141,12 +141,12 @@ public class pjsua_config {
     return pjsuaJNI.pjsua_config_nat_type_in_sdp_get(swigCPtr, this);
   }
 
-  public void setRequire_100rel(int value) {
-    pjsuaJNI.pjsua_config_require_100rel_set(swigCPtr, this, value);
+  public void setRequire_100rel(pjsua_100rel_use value) {
+    pjsuaJNI.pjsua_config_require_100rel_set(swigCPtr, this, value.swigValue());
   }
 
-  public int getRequire_100rel() {
-    return pjsuaJNI.pjsua_config_require_100rel_get(swigCPtr, this);
+  public pjsua_100rel_use getRequire_100rel() {
+    return pjsua_100rel_use.swigToEnum(pjsuaJNI.pjsua_config_require_100rel_get(swigCPtr, this));
   }
 
   public void setUse_timer(pjsua_sip_timer_use value) {
@@ -165,12 +165,13 @@ public class pjsua_config {
     return pjsuaJNI.pjsua_config_enable_unsolicited_mwi_get(swigCPtr, this);
   }
 
-  public void setTimer_setting(SWIGTYPE_p_pjsip_timer_setting value) {
-    pjsuaJNI.pjsua_config_timer_setting_set(swigCPtr, this, SWIGTYPE_p_pjsip_timer_setting.getCPtr(value));
+  public void setTimer_setting(pjsip_timer_setting value) {
+    pjsuaJNI.pjsua_config_timer_setting_set(swigCPtr, this, pjsip_timer_setting.getCPtr(value), value);
   }
 
-  public SWIGTYPE_p_pjsip_timer_setting getTimer_setting() {
-    return new SWIGTYPE_p_pjsip_timer_setting(pjsuaJNI.pjsua_config_timer_setting_get(swigCPtr, this), true);
+  public pjsip_timer_setting getTimer_setting() {
+    long cPtr = pjsuaJNI.pjsua_config_timer_setting_get(swigCPtr, this);
+    return (cPtr == 0) ? null : new pjsip_timer_setting(cPtr, false);
   }
 
   public void setCred_count(long value) {
