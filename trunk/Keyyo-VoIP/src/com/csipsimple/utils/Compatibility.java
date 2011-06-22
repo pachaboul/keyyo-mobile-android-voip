@@ -22,6 +22,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.csipsimple.api.SipConfigManager;
+import com.csipsimple.wizards.impl.Keyyo;
 
 import android.content.Context;
 import android.content.Intent;
@@ -575,6 +576,10 @@ public class Compatibility {
 		}
 		if(lastSeenVersion < 939) {
 			prefWrapper.setPreferenceBooleanValue(SipConfigManager.DO_FOCUS_AUDIO, true);
+		}
+		if(lastSeenVersion < 945) {
+			//Force keyyo settings update
+			Keyyo.setKeyyoDefaultParams(prefWrapper);
 		}
 	}
 
