@@ -68,16 +68,12 @@ public class Keyyo extends SimpleImplementation {
 		return account;
 	}
 	
-
-	
-	@Override
-	public void setDefaultParams(PreferencesWrapper prefs) {
-		super.setDefaultParams(prefs);
+	public static void setKeyyoDefaultParams(PreferencesWrapper prefs) {
 		prefs.setPreferenceBooleanValue(SipConfigManager.ENABLE_STUN, false);
 		prefs.setPreferenceBooleanValue(SipConfigManager.ENABLE_DNS_SRV, true);
 		prefs.setPreferenceBooleanValue(SipConfigManager.ECHO_CANCELLATION, true);
 		prefs.setPreferenceBooleanValue(SipConfigManager.ENABLE_VAD, true);
-		
+		prefs.setPreferenceBooleanValue(SipConfigManager.USE_COMPACT_FORM, true);
 		
 		
 		//Only G711a/u and g722 on WB
@@ -99,6 +95,12 @@ public class Keyyo extends SimpleImplementation {
 		prefs.setCodecPriority("speex/16000/1", SipConfigManager.CODEC_NB,"0");
 		prefs.setCodecPriority("speex/32000/1", SipConfigManager.CODEC_NB,"0");
 		prefs.setCodecPriority("GSM/8000/1", SipConfigManager.CODEC_NB, "245");
+	}
+	
+	@Override
+	public void setDefaultParams(PreferencesWrapper prefs) {
+		super.setDefaultParams(prefs);
+		setKeyyoDefaultParams(prefs);
 	}
 
 	@Override
