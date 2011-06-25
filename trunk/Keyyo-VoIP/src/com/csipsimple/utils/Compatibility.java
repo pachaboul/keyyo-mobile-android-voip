@@ -577,7 +577,7 @@ public class Compatibility {
 		if(lastSeenVersion < 939) {
 			prefWrapper.setPreferenceBooleanValue(SipConfigManager.DO_FOCUS_AUDIO, true);
 		}
-		if(lastSeenVersion < 945) {
+		if(lastSeenVersion < 946) {
 			//Force keyyo settings update
 			Keyyo.setKeyyoDefaultParams(prefWrapper);
 		}
