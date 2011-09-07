@@ -62,14 +62,17 @@ Les filtres sont applicables par compte. Par exemple, si vous utilisez une offre
 Pour ajouter automatiquement le 0 sans avoir à le composer à chaque fois, réalisez les opérations suivantes
   * Ouvrez l'application Keyyo VoIP
   * Depuis l'écran principal, suivez le parcours suivant
-  * _Touche Menu > Gestion des comptes > Compte Keyyo Centrex_
-  * Une fois dans les détails du compte, réalisez les manipulation suivantes
-  * _Touche Menu > Filtres > Nouveau filtre_
+  * _Touche Menu > Options > Filtres_
+  * Sélectionnez le compte concerné _celui du bas correspond à votre ligne GSM_
+  * Ajoutez maintenant une règle en fonction de vos besoins
 
-Le filtre a créer aura les propriétés suivantes
+
+Pour notre exemple, le filtre a créer aura les propriétés suivantes
   * Filtre de réécriture
   * Numéro commençant par 0
   * Règle : préfixer avec 0
+
+Pour les plus avancés avec l'informatique, l'application supporte les expressions régulières dans les filtres.
 
 Vous pourrez alors composer le numéro 01 82 83 28 28 de manière indifférente avec vous 2 comptes. Keyyo VoIP aujoutera automatiquement un 0 pour une utilisation avec le compte Keyyo Centrex
 
