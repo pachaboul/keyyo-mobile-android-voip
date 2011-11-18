@@ -19,7 +19,6 @@ package com.csipsimple.pjsip;
 
 import org.pjsip.pjsua.pj_str_t;
 import org.pjsip.pjsua.pjmedia_srtp_use;
-import org.pjsip.pjsua.pjmedia_zrtp_use;
 import org.pjsip.pjsua.pjsip_cred_info;
 import org.pjsip.pjsua.pjsua;
 import org.pjsip.pjsua.pjsuaConstants;
@@ -33,7 +32,7 @@ import com.csipsimple.api.SipProfile;
 import com.csipsimple.api.SipUri;
 import com.csipsimple.api.SipUri.ParsedSipContactInfos;
 import com.csipsimple.utils.Log;
-import com.csipsimple.utils.PreferencesWrapper;
+import com.csipsimple.utils.PreferencesProviderWrapper;
 
 public class PjSipAccount {
 	
@@ -48,7 +47,7 @@ public class PjSipAccount {
 	public Integer id;
 	public Integer transport = 0;
 	
-	private boolean hasZrtpValue = false;
+	//private boolean hasZrtpValue = false;
 
 	
 	
@@ -107,10 +106,13 @@ public class PjSipAccount {
 			cfg.setUse_srtp(pjmedia_srtp_use.swigToEnum(profile.use_srtp));
 			cfg.setSrtp_secure_signaling(0);
 		}
+		// TODO : Reactivate that
+		/*
 		if(profile.use_zrtp > 0) {
 			cfg.setUse_zrtp(pjmedia_zrtp_use.swigToEnum(profile.use_zrtp));
 			hasZrtpValue = true;
 		}
+		*/
 		
 		if(profile.proxies != null) {
 			Log.d("PjSipAccount", "Create proxy "+profile.proxies.length);
@@ -173,19 +175,19 @@ public class PjSipAccount {
 		}
 		
 		if (!TextUtils.isEmpty(argument)) {
-			regUri = cfg.getReg_uri().getPtr();
+			regUri = PjSipService.pjStrToString(cfg.getReg_uri());
 			if(!TextUtils.isEmpty(regUri)) {
 				long initialProxyCnt = cfg.getProxy_cnt();
 				pj_str_t[] proxies = cfg.getProxy();
 				
 				//TODO : remove lr and transport from uri
 		//		cfg.setReg_uri(pjsua.pj_str_copy(proposed_server));
-				
-				if (initialProxyCnt == 0 || TextUtils.isEmpty(proxies[0].getPtr())) {
+				String firstProxy = PjSipService.pjStrToString(proxies[0]);
+				if (initialProxyCnt == 0 || TextUtils.isEmpty(firstProxy)) {
 					cfg.setReg_uri(pjsua.pj_str_copy(regUri + argument));
 					cfg.setProxy_cnt(0);
 				} else {
-					proxies[0] = pjsua.pj_str_copy(proxies[0].getPtr() + argument);
+					proxies[0] = pjsua.pj_str_copy(firstProxy + argument);
 					cfg.setProxy(proxies);
 				}
 //				} else {
@@ -196,13 +198,13 @@ public class PjSipAccount {
 		}
 		
 		//Caller id
-		PreferencesWrapper prefs = new PreferencesWrapper(ctxt);
+		PreferencesProviderWrapper prefs = new PreferencesProviderWrapper(ctxt);
 		String defaultCallerid = prefs.getPreferenceStringValue(SipConfigManager.DEFAULT_CALLER_ID);
 		
 		
 		// If one default caller is set 
 		if (!TextUtils.isEmpty(defaultCallerid)) {
-			String accId = cfg.getId().getPtr();
+			String accId = PjSipService.pjStrToString(cfg.getId());
 			ParsedSipContactInfos parsedInfos = SipUri.parseSipContact(accId);
 			if (TextUtils.isEmpty(parsedInfos.displayName)) {
 				// Apply new display name
@@ -211,6 +213,10 @@ public class PjSipAccount {
 			}
 		}
 		
+		cfg.setKa_interval(prefs.getKeepAliveInterval());
+		
+		// TODO : reactivate that
+		/*
 		if(!hasZrtpValue) {
 			int useZrtp = prefs.getPreferenceIntegerValue(SipConfigManager.USE_ZRTP);
 			if(useZrtp == 1 || useZrtp == 2) {
@@ -218,7 +224,7 @@ public class PjSipAccount {
 			}
 			Log.d("Pj profile", "--> added zrtp "+ useZrtp);
 		}
-		
+		*/
 	}
 	
 	

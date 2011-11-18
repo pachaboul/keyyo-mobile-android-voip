@@ -22,29 +22,29 @@ import java.util.HashSet;
 
 import com.csipsimple.utils.Log;
 
-class SipWakeLock {
+public class SipWakeLock {
     private static final String THIS_FILE = "SipWakeLock";
     private PowerManager mPowerManager;
     private PowerManager.WakeLock mWakeLock;
     private PowerManager.WakeLock mTimerWakeLock;
     private HashSet<Object> mHolders = new HashSet<Object>();
 
-    SipWakeLock(PowerManager powerManager) {
+    public SipWakeLock(PowerManager powerManager) {
         mPowerManager = powerManager;
     }
 
-    synchronized void reset() {
+    public synchronized void reset() {
         mHolders.clear();
         release(null);
         if( mWakeLock != null ) {
 	        while(mWakeLock.isHeld()) {
 	        	mWakeLock.release();
 	        }
-	        Log.d(THIS_FILE, "~~~ hard reset wakelock :: still held : " + mWakeLock.isHeld());
+	        Log.v(THIS_FILE, "~~~ hard reset wakelock :: still held : " + mWakeLock.isHeld());
         }
     }
 
-    synchronized void acquire(long timeout) {
+    public synchronized void acquire(long timeout) {
         if (mTimerWakeLock == null) {
             mTimerWakeLock = mPowerManager.newWakeLock(
                     PowerManager.PARTIAL_WAKE_LOCK, "SipWakeLock.timer");
@@ -53,25 +53,25 @@ class SipWakeLock {
         mTimerWakeLock.acquire(timeout);
     }
 
-    synchronized void acquire(Object holder) {
+    public synchronized void acquire(Object holder) {
         mHolders.add(holder);
         if (mWakeLock == null) {
             mWakeLock = mPowerManager.newWakeLock(
                     PowerManager.PARTIAL_WAKE_LOCK, "SipWakeLock");
         }
         if (!mWakeLock.isHeld()) mWakeLock.acquire();
-        Log.d(THIS_FILE, "acquire wakelock: holder count="
+        Log.v(THIS_FILE, "acquire wakelock: holder count="
                 + mHolders.size());
     }
 
-    synchronized void release(Object holder) {
+    public synchronized void release(Object holder) {
         mHolders.remove(holder);
         if ((mWakeLock != null) && mHolders.isEmpty()
                 && mWakeLock.isHeld()) {
             mWakeLock.release();
         }
         
-        Log.d(THIS_FILE, "release wakelock: holder count="
+        Log.v(THIS_FILE, "release wakelock: holder count="
                 + mHolders.size());
     }
 }

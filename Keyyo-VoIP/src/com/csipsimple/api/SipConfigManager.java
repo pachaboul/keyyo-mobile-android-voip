@@ -41,7 +41,7 @@ public class SipConfigManager {
 	public static final String HAS_IO_QUEUE = "has_io_queue";
 	public static final String BITS_PER_SAMPLE = "bits_per_sample";
 	public static final String SET_AUDIO_GENERATE_TONE = "set_audio_generate_tone";
-	public static final String THREAD_COUNT = "thread_count";
+	//public static final String THREAD_COUNT = "thread_count";
 	public static final String ECHO_MODE = "echo_mode";
 	public static final String SND_PTIME = "snd_ptime";
 	public static final String USE_SGS_CALL_HACK = "use_sgs_call_hack";
@@ -52,6 +52,8 @@ public class SipConfigManager {
 	public static final String MICRO_SOURCE = "micro_source";
 	public static final String USE_WEBRTC_HACK = "use_webrtc_hack";
 	public static final String DO_FOCUS_AUDIO = "do_focus_audio";
+	public static final String SND_STREAM_LEVEL = "snd_stream_level";
+	public static final String HEADSET_ACTION = "headset_action";
 	
 	
 	//UI
@@ -69,6 +71,8 @@ public class SipConfigManager {
 	public static final String USE_PARTIAL_WAKE_LOCK = "use_partial_wake_lock";
 	public static final String INTEGRATE_WITH_CALLLOGS = "integrate_with_native_calllogs";
 	public static final String INTEGRATE_WITH_DIALER = "integrate_with_native_dialer";
+	public static final String INTEGRATE_WITH_NATIVE_MUSIC = "integrate_with_native_music";
+	public static final String RINGTONE = "ringtone";
 	
 	// NETWORK
 	public static final String TURN_SERVER = "turn_server";
@@ -91,19 +95,20 @@ public class SipConfigManager {
 	public static final String OVERRIDE_NAMESERVER = "override_nameserver";
 	public static final String USE_COMPACT_FORM = "use_compact_form";
 	public static final String USER_AGENT = "user_agent"; 
-	public static final String KEEP_ALIVE_USE_WAKE = "ka_use_wake";
-	
+	public static final String FORCE_NO_UPDATE = "force_no_update";
+	public static final String TIMER_MIN_SE = "timer_min_se";
+	public static final String TIMER_SESS_EXPIRES = "timer_sess_expires";
 	
 	// SECURE
 	public static final String ENABLE_TLS = "enable_tls";
 	public static final String TLS_TRANSPORT_PORT = "network_tls_transport_port";
-//	public static final String TLS_SERVER_NAME = "network_tls_server_name";
-//	public static final String CA_LIST_FILE = "ca_list_file";
-//	public static final String CERT_FILE = "cert_file";
-//	public static final String PRIVKEY_FILE = "privkey_file";
-//	public static final String TLS_PASSWORD = "tls_password";
+	public static final String TLS_SERVER_NAME = "network_tls_server_name";
+	public static final String CA_LIST_FILE = "ca_list_file";
+	public static final String CERT_FILE = "cert_file";
+	public static final String PRIVKEY_FILE = "privkey_file";
+	public static final String TLS_PASSWORD = "tls_password";
 	public static final String TLS_VERIFY_SERVER = "tls_verify_server";
-//	public static final String TLS_VERIFY_CLIENT = "tls_verify_client";
+	public static final String TLS_VERIFY_CLIENT = "tls_verify_client";
 	public static final String TLS_METHOD = "tls_method";
 	public static final String USE_SRTP = "use_srtp";
 	public static final String USE_ZRTP = "use_zrtp";

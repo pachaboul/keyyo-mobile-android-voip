@@ -51,6 +51,7 @@
     <item>自動</item>
     <item>Speex</item>
     <item>簡單</item>
+    <item>WebRTC</item>
   </string-array>
   <string-array name="dial_press_mode_choices">
     <item>採用 Android 設定</item>
@@ -60,5 +61,11 @@
   <string-array name="band_types_name">
     <item>窄頻</item>
     <item>寬頻</item>
+  </string-array>
+  <string-array name="reg_use_proxy_choices">
+    <item>不使用代理器</item>
+    <item>撥出代理器</item>
+    <item>帳號代理器</item>
+    <item>全部</item>
   </string-array>
 </resources>

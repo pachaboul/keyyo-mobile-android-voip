@@ -33,6 +33,7 @@ public final class SipManager {
 	public static final String INTENT_SIP_CONFIGURATION = "com.csipsimple.service.SipConfiguration";
 	public static final String INTENT_SIP_SERVICE = "com.csipsimple.service.SipService";
 	public static final String INTENT_SIP_ACCOUNT_ACTIVATE = "com.csipsimple.accounts.activate";
+	public static final Object INTENT_GET_ACCOUNTS_LIST = "com.csipsimple.accounts.list";
 	
 	// -------
 	// ACTIONS
@@ -52,17 +53,21 @@ public final class SipManager {
 	public static final String ACTION_SIP_MESSAGE_RECEIVED = "com.csipsimple.service.MESSAGE_RECEIVED";
 	//TODO : message sent?
 	public static final String ACTION_SIP_MESSAGE_STATUS = "com.csipsimple.service.MESSAGE_STATUS";
-	
 	public static final String ACTION_GET_DRAWABLES = "com.csipsimple.themes.GET_DRAWABLES";
+	public static final String ACTION_GET_PHONE_HANDLERS = "com.csipsimple.phone.action.HANDLE_CALL";
 	
 	// EXTRAS
 	public static final String EXTRA_CALL_INFO = "call_info";
 	public static final String EXTRA_ACCOUNT_ID = "acc_id";
 	public static final String EXTRA_ACTIVATE = "activate";
+	public static final String EXTRA_PROFILES = "profiles";
+	
 	
 	// Constants
 	public static final int SUCCESS = 0;
-	public static final int CURRENT_API = 1000;
+	public static final int ERROR_CURRENT_NETWORK = 10;
+	
+	public static final int CURRENT_API = 1002;
 	
 	public static boolean isApiCompatible(ISipService service) {
 		if(service != null) {

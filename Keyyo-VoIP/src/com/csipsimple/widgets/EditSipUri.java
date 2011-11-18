@@ -128,7 +128,7 @@ public class EditSipUri extends LinearLayout implements TextWatcher, OnItemClick
 
 		String dialUserValue = dialUser.getText().toString();
 		SipProfile acc = accountChooserButtonText.getSelectedAccount();
-		if(!Pattern.matches(".*@.*", dialUserValue) && acc != null) {
+		if(!Pattern.matches(".*@.*", dialUserValue) && acc != null && acc.id > SipProfile.INVALID_ID) {
 			domainTextHelper.setText("@"+acc.getDefaultDomain());
 		}else {
 			domainTextHelper.setText("");
@@ -147,11 +147,15 @@ public class EditSipUri extends LinearLayout implements TextWatcher, OnItemClick
 		SipProfile acc = accountChooserButtonText.getSelectedAccount();
 		if (acc != null) {
 			accountToUse = acc.id;
-			//TODO : escape + and special char in username
-			if(Pattern.matches(".*@.*", userName)) {
-				toCall = "sip:" + userName +"";
+			// If this is a sip account
+			if(accountToUse > SipProfile.INVALID_ID) {
+				if(Pattern.matches(".*@.*", userName)) {
+					toCall = "sip:" + userName +"";
+				}else {
+					toCall = "sip:" + userName + "@" + acc.getDefaultDomain();
+				}
 			}else {
-				toCall = "sip:" + userName + "@" + acc.getDefaultDomain();
+				toCall = userName;
 			}
 		}else {
 			toCall = userName;
@@ -213,6 +217,10 @@ public class EditSipUri extends LinearLayout implements TextWatcher, OnItemClick
 			}
 		});
 		Log.d(THIS_FILE, "Clicked contact "+contactId);
+	}
+
+	public void setShowExternals(boolean b) {
+		accountChooserButtonText.setShowExternals(b);
 	}
 
 	/*

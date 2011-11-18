@@ -18,9 +18,9 @@
  */
 package com.csipsimple.pjsip;
 
-import java.io.File;
-import java.util.Date;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map.Entry;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -50,13 +50,13 @@ import android.os.SystemClock;
 import android.provider.CallLog;
 import android.provider.CallLog.Calls;
 import android.telephony.TelephonyManager;
-import android.text.format.DateFormat;
 
 import com.keyyomobile.android.voip.R;
 import com.csipsimple.api.SipCallSession;
 import com.csipsimple.api.SipConfigManager;
 import com.csipsimple.api.SipManager;
 import com.csipsimple.api.SipProfile;
+import com.csipsimple.api.SipProfileState;
 import com.csipsimple.api.SipUri;
 import com.csipsimple.api.SipUri.ParsedSipContactInfos;
 import com.csipsimple.db.DBAdapter;
@@ -64,9 +64,10 @@ import com.csipsimple.models.SipMessage;
 import com.csipsimple.service.SipNotifications;
 import com.csipsimple.service.SipService;
 import com.csipsimple.service.SipService.SameThreadException;
+import com.csipsimple.service.SipService.SipRunnable;
 import com.csipsimple.utils.CallLogHelper;
 import com.csipsimple.utils.Log;
-import com.csipsimple.utils.PreferencesWrapper;
+import com.csipsimple.utils.PreferencesProviderWrapper;
 import com.csipsimple.utils.Threading;
 
 public class UAStateReceiver extends Callback {
@@ -115,16 +116,17 @@ public class UAStateReceiver extends Callback {
 			if(calls != null && calls.length > 0) {
 				for( SipCallSession existingCall : calls) {
 					if(!existingCall.isAfterEnded()) {
-						Log.e(THIS_FILE, "For now we do not support two call at the same time !!!");
+						Log.e(THIS_FILE, "Settings to not support two call at the same time !!!");
 						//If there is an ongoing call and we do not support multiple calls
 						//Send busy here
 						pjsua.call_hangup(callId, 486, null, null);
+						unlockCpu();
 						return;
 					}
 				}
 			}
 		}
-		pjService.service.getExecutor().execute(pjService.service.new SipRunnable() {
+		pjService.service.getExecutor().execute(new SipRunnable() {
 			@Override
 			public void doRun() throws SameThreadException {
 				SipCallSession callInfo = updateCallInfoFromStack(callId);
@@ -147,7 +149,7 @@ public class UAStateReceiver extends Callback {
 		lockCpu();
 		
 		Log.d(THIS_FILE, "Call state <<");
-		pjService.service.getExecutor().execute(pjService.service.new SipRunnable() {
+		pjService.service.getExecutor().execute(new SipRunnable() {
 			@Override
 			public void doRun() throws SameThreadException {
 				//Get current infos
@@ -166,7 +168,7 @@ public class UAStateReceiver extends Callback {
 					// Call is now ended
 					pjService.stopDialtoneGenerator();
 					//TODO : should be stopped only if it's the current call.
-					stopRecording();
+					pjService.stopRecording();
 				}
 				
 				msgHandler.sendMessage(msgHandler.obtainMessage(ON_CALL_STATE, callInfo));
@@ -190,18 +192,15 @@ public class UAStateReceiver extends Callback {
 		lockCpu();
 		
 		long date = System.currentTimeMillis();
-		String sFrom = SipUri.getCanonicalSipContact(from.getPtr());
+		String fromStr = PjSipService.pjStrToString(from);
+		String canonicFromStr = SipUri.getCanonicalSipContact(fromStr);
+		String contactStr = PjSipService.pjStrToString(contact);
+		String toStr = PjSipService.pjStrToString(to);
+		String bodyStr = PjSipService.pjStrToString(body);
+		String mimeStr = PjSipService.pjStrToString(mime_type);
 		
-		String contactString = "";
-		if(contact != null && contact.getSlen() > 0) {
-			Log.d(THIS_FILE, "Contact is present");
-			contactString = contact.getPtr();
-		}else {
-			Log.d(THIS_FILE, "EMPTY CONTACT !!!");
-		}
-		
-		SipMessage msg = new SipMessage(sFrom, to.getPtr(), contactString, body.getPtr(), mime_type.getPtr(), 
-				date, SipMessage.MESSAGE_TYPE_INBOX, from.getPtr());
+		SipMessage msg = new SipMessage(canonicFromStr, toStr, contactStr, bodyStr, mimeStr, 
+				date, SipMessage.MESSAGE_TYPE_INBOX, fromStr);
 		
 		//Insert the message to the DB 
 		DBAdapter database = new DBAdapter(pjService.service);
@@ -227,14 +226,15 @@ public class UAStateReceiver extends Callback {
 		//TODO : treat error / acknowledge of messages
 		int messageType = (status.equals(pjsip_status_code.PJSIP_SC_OK) 
 				|| status.equals(pjsip_status_code.PJSIP_SC_ACCEPTED))? SipMessage.MESSAGE_TYPE_SENT : SipMessage.MESSAGE_TYPE_FAILED;
-		String sTo = SipUri.getCanonicalSipContact(to.getPtr());
+		String sTo = SipUri.getCanonicalSipContact(PjSipService.pjStrToString(to));
 
-		Log.d(THIS_FILE, "SipMessage in on pager status "+status.toString()+" / "+reason.getPtr());
+		String reasonStr = PjSipService.pjStrToString(reason);
+		Log.d(THIS_FILE, "SipMessage in on pager status "+status.toString()+" / "+reasonStr);
 		
 		//Update the db
 		DBAdapter database = new DBAdapter(pjService.service);
 		database.open();
-		database.updateMessageStatus(sTo, body.getPtr(), messageType, status.swigValue(), reason.getPtr());
+		database.updateMessageStatus(sTo, PjSipService.pjStrToString(body), messageType, status.swigValue(), reasonStr);
 		database.close();
 		
 		//Broadcast the information
@@ -244,10 +244,13 @@ public class UAStateReceiver extends Callback {
 		unlockCpu();
 	}
 
+	
+	private List<Integer> pendingCleanup = new ArrayList<Integer>();
+	
 	@Override
 	public void on_reg_state(final int accountId) {
 		lockCpu();
-		pjService.service.getExecutor().execute(pjService.service.new SipRunnable() {
+		pjService.service.getExecutor().execute(new SipRunnable() {
 			@Override
 			public void doRun() throws SameThreadException {
 				// Update java infos
@@ -257,6 +260,50 @@ public class UAStateReceiver extends Callback {
 				// Dispatch to UA handler thread
 				if(msgHandler != null) {
 					msgHandler.sendMessage(msgHandler.obtainMessage(ON_REGISTRATION_STATE, accountId));
+				}
+				
+				
+				//Try to recover registration many other clients (or self) also registered
+				SipProfile account = pjService.getAccountForPjsipId(accountId);
+				if(account != null && account.try_clean_registers != 0 && account.active) {
+					SipProfileState pState = pjService.getProfileState(account);
+					if(pState != null) {
+						Log.d(THIS_FILE, "We have a new status "+
+								pState.getStatusCode()+ " "+
+								pendingCleanup.contains(accountId)+" "+
+								pState.getExpires());
+						
+						// Failure on registration
+						// TODO : refine cases ? 403 only? 
+						if(pState.getStatusCode() > 200
+								&& !pendingCleanup.contains(accountId) ) {
+							Log.w(THIS_FILE, "Error while registering for "+accountId+" "+
+										pState.getStatusCode()+" "+pState.getStatusText());
+							
+							
+							int state = pjsua.acc_clean_all_registrations(accountId);
+							if(state == pjsuaConstants.PJ_SUCCESS) {
+								pendingCleanup.add(accountId);
+							}
+						// Success on clean up
+						}else if(pState.getStatusCode() == 200 && 
+								pState.getExpires() == -1 &&
+								pendingCleanup.contains(accountId)) {
+							
+							int state = pjsua.acc_set_registration(accountId, 1);
+							if(state == pjsuaConstants.PJ_SUCCESS) {
+								pendingCleanup.remove((Object) accountId);
+							}else {
+								Log.e(THIS_FILE, "Impossible to set again registration now " + state);
+							}
+							
+						// Success
+						}else if(pState.getStatusCode() == 200) {
+							pendingCleanup.remove((Object) accountId);
+						}
+						Log.d(THIS_FILE, "pending clean ups are  " + pendingCleanup);
+					}
+				
 				}
 			}
 		});
@@ -288,7 +335,7 @@ public class UAStateReceiver extends Callback {
 		if(incomingCallLock != null && incomingCallLock.isHeld()) {
 			incomingCallLock.release();
 		}
-		pjService.service.getExecutor().execute(pjService.service.new SipRunnable() {
+		pjService.service.getExecutor().execute(new SipRunnable() {
 			@Override
 			public void doRun() throws SameThreadException {
 				SipCallSession callInfo = updateCallInfoFromStack(callId);
@@ -304,9 +351,9 @@ public class UAStateReceiver extends Callback {
 				//	pjsua.set_ec( pjService.prefsWrapper.getEchoCancellationTail(), pjService.prefsWrapper.getEchoMode());
 					
 					// Auto record
-					if (recordedCall == INVALID_RECORD && 
+					if (pjService.recordedCall == PjSipService.INVALID_RECORD && 
 							pjService.prefsWrapper.getPreferenceBooleanValue(SipConfigManager.AUTO_RECORD_CALLS)) {
-						startRecording(callId);
+						pjService.startRecording(callId);
 					}
 					
 				}
@@ -322,7 +369,7 @@ public class UAStateReceiver extends Callback {
 		lockCpu();
 		//Treat incoming voice mail notification.
 		
-		String msg = body.getPtr();
+		String msg = PjSipService.pjStrToString(body);
 		//Log.d(THIS_FILE, "We have a message :: " + acc_id + " | " + mime_type.getPtr() + " | " + body.getPtr());
 		
 		boolean hasMessage = false;
@@ -379,14 +426,45 @@ public class UAStateReceiver extends Callback {
 		unlockCpu();
 	}
 	
+	public String sasString = "";
+	public boolean zrtpOn = false;
+	
 	@Override
 	public void on_zrtp_show_sas(pj_str_t sas, int verified) {
-		String sasString = sas.getPtr();
+		sasString = PjSipService.pjStrToString(sas);
 		Log.d(THIS_FILE, "Hey hoy hay, we get the show SAS " + sasString);
-		Intent zrtpIntent = new Intent(SipManager.ACTION_ZRTP_SHOW_SAS);
-		zrtpIntent.putExtra(Intent.EXTRA_SUBJECT, sasString);
-		pjService.service.sendBroadcast(zrtpIntent);
-		
+		if(verified != 1) {
+			Intent zrtpIntent = new Intent(SipManager.ACTION_ZRTP_SHOW_SAS);
+			zrtpIntent.putExtra(Intent.EXTRA_SUBJECT, sasString);
+			pjService.service.sendBroadcast(zrtpIntent);
+		}
+		updateZrtpInfos();
+	}
+	
+
+	@Override
+	public void on_zrtp_secure_on(pj_str_t cipher) {
+		zrtpOn = true;
+		updateZrtpInfos();
+	}
+	
+	@Override
+	public void on_zrtp_secure_off() {
+		zrtpOn = false;
+	}
+	
+	private void updateZrtpInfos() {
+		// For now, just get the first active call ...
+		if(callsList.size() > 0) {
+			for(SipCallSession callInfo : callsList.values()) {
+				if(callInfo.isActive()) {
+					callInfo.setMediaSecure(true);
+					callInfo.setMediaSecureInfo("ZRTP : "+sasString);
+					onBroadcastCallState(callInfo);
+					break;
+				}
+			}
+		}
 	}
 	
 	
@@ -408,7 +486,7 @@ public class UAStateReceiver extends Callback {
 	
 	@Override
 	public pjsip_redirect_op on_call_redirected(int call_id, pj_str_t target) {
-		Log.w(THIS_FILE, "Ask for redirection, not yet implemented, for now allow all "+target.getPtr());
+		Log.w(THIS_FILE, "Ask for redirection, not yet implemented, for now allow all "+ PjSipService.pjStrToString(target));
 		return pjsip_redirect_op.PJSIP_REDIRECT_ACCEPT;
 	}
 	
@@ -525,7 +603,7 @@ public class UAStateReceiver extends Callback {
 				SipProfile acc = pjService.getAccountForPjsipId(accountId);
 				final boolean shouldAutoAnswer = pjService.service.shouldAutoAnswer(remContact, acc);
 				Log.d(THIS_FILE, "Should I anto answer????"+shouldAutoAnswer);
-				pjService.service.getExecutor().execute(pjService.service.new SipRunnable() {
+				pjService.service.getExecutor().execute(new SipRunnable() {
 					@Override
 					public void doRun() throws SameThreadException {
 						if (shouldAutoAnswer) {
@@ -614,7 +692,7 @@ public class UAStateReceiver extends Callback {
 					}
 					
 					//If needed fill native database
-					if(pjService.prefsWrapper.useIntegrateCallLogs()) {
+					if(pjService.prefsWrapper.getPreferenceBooleanValue(SipConfigManager.INTEGRATE_WITH_CALLLOGS)) {
 						//Don't add with new flag
 						cv.put(CallLog.Calls.NEW, false);
 						
@@ -832,7 +910,7 @@ public class UAStateReceiver extends Callback {
     				(state == SipCallSession.InvState.INCOMING || 
     				state == SipCallSession.InvState.EARLY)) {
     			if(pjService != null && pjService.service != null ) {
-    				pjService.service.getExecutor().execute(pjService.service.new SipRunnable() {
+    				pjService.service.getExecutor().execute(new SipRunnable() {
 						@Override
 						protected void doRun() throws SameThreadException {
 							
@@ -853,15 +931,15 @@ public class UAStateReceiver extends Callback {
 				// the call should be cleared.
 				//
     			if(pjService != null && pjService.service != null ) {
-    				pjService.service.getExecutor().execute(pjService.service.new SipRunnable() {
+    				pjService.service.getExecutor().execute(new SipRunnable() {
 						@Override
 						protected void doRun() throws SameThreadException {
 							switch(pjService.prefsWrapper.getHeadsetAction()) {
 							//TODO : add hold -
-							case PreferencesWrapper.HEADSET_ACTION_CLEAR_CALL:
+							case PreferencesProviderWrapper.HEADSET_ACTION_CLEAR_CALL:
 								pjService.callHangup(callInfo.getCallId(), 0);
 								break;
-							case PreferencesWrapper.HEADSET_ACTION_MUTE:
+							case PreferencesProviderWrapper.HEADSET_ACTION_MUTE:
 								pjService.mediaManager.toggleMute();
 								break;
 							}
@@ -874,82 +952,4 @@ public class UAStateReceiver extends Callback {
 		return false;
 	}
 	
-	// Recorder
-	private static int INVALID_RECORD = -1; 
-	private int recordedCall = INVALID_RECORD;
-	private int recPort = -1;
-	private int recorderId = -1;
-	private int recordedConfPort = -1;
-	public void startRecording(int callId) {
-		// Ensure nothing is recording actually
-		if (recordedCall == INVALID_RECORD) {
-			SipCallSession callInfo = getCallInfo(callId);
-			if(callInfo == null || callInfo.getMediaStatus() != SipCallSession.MediaState.ACTIVE) {
-				return;
-			}
-			
-		    File mp3File = getRecordFile(callInfo.getRemoteContact());
-		    if (mp3File != null){
-				int[] recId = new int[1];
-				pj_str_t filename = pjsua.pj_str_copy(mp3File.getAbsolutePath());
-				int status = pjsua.recorder_create(filename, 0, (byte[]) null, 0, 0, recId);
-				if(status == pjsuaConstants.PJ_SUCCESS) {
-					recorderId = recId[0];
-					Log.d(THIS_FILE, "Record started : " + recorderId);
-					recordedConfPort = callInfo.getConfPort();
-					recPort = pjsua.recorder_get_conf_port(recorderId);
-					pjsua.conf_connect(recordedConfPort, recPort);
-					pjsua.conf_connect(0, recPort);
-					recordedCall = callId;
-				}
-		    }else {
-		    	//TODO: toaster
-		    	Log.w(THIS_FILE, "Impossible to write file");
-		    }
-		}
-	}
-	
-	public void stopRecording() {
-		Log.d(THIS_FILE, "Stop recording " + recordedCall+" et "+ recorderId);
-		if (recorderId != -1) {
-			pjsua.recorder_destroy(recorderId);
-			recorderId = -1;
-		}
-		recordedCall = INVALID_RECORD;
-	}
-	
-	public boolean canRecord(int callId) {
-		if (recordedCall == INVALID_RECORD) {
-			SipCallSession callInfo = getCallInfo(callId);
-			if(callInfo == null || callInfo.getMediaStatus() != SipCallSession.MediaState.ACTIVE) {
-				return false;
-			}
-			return true;
-		}
-		return false;
-	}
-	
-	public int getRecordedCall() {
-		return recordedCall; 
-	}
-	
-	private File getRecordFile(String remoteContact) {
-		File dir = PreferencesWrapper.getRecordsFolder();
-	    if (dir != null){
-			Date d = new Date();
-			File file = new File(dir.getAbsoluteFile() + File.separator + sanitizeForFile(remoteContact)+ "_"+DateFormat.format("MM-dd-yy_kkmmss", d)+".wav");
-			Log.d(THIS_FILE, "Out dir " + file.getAbsolutePath());
-			return file;
-	    }
-	    return null;
-	}
-
-
-	private String sanitizeForFile(String remoteContact) {
-		String fileName = remoteContact;
-		fileName = fileName.replaceAll("[\\.\\\\<>:; \"\'\\*]", "_");
-		return fileName;
-	}
-
-
 }

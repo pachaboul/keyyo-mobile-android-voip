@@ -20,15 +20,18 @@ package com.csipsimple.pjsip;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map.Entry;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.pjsip.pjsua.csipsimple_config;
 import org.pjsip.pjsua.pj_qos_params;
 import org.pjsip.pjsua.pj_qos_type;
 import org.pjsip.pjsua.pj_str_t;
 import org.pjsip.pjsua.pjmedia_srtp_use;
+import org.pjsip.pjsua.pjsip_timer_setting;
 import org.pjsip.pjsua.pjsip_tls_setting;
 import org.pjsip.pjsua.pjsip_transport_type_e;
 import org.pjsip.pjsua.pjsua;
@@ -43,8 +46,11 @@ import org.pjsip.pjsua.pjsua_transport_config;
 import android.content.Context;
 import android.content.Intent;
 import android.media.AudioManager;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.telephony.TelephonyManager;
 import android.text.TextUtils;
+import android.text.format.DateFormat;
 import android.view.KeyCharacterMap;
 
 import com.keyyomobile.android.voip.R;
@@ -58,7 +64,8 @@ import com.csipsimple.service.SipService;
 import com.csipsimple.service.SipService.SameThreadException;
 import com.csipsimple.service.SipService.ToCall;
 import com.csipsimple.utils.Log;
-import com.csipsimple.utils.PreferencesWrapper;
+import com.csipsimple.utils.PreferencesProviderWrapper;
+import com.csipsimple.utils.TimerWrapper;
 
 
 public class PjSipService {
@@ -70,7 +77,7 @@ public class PjSipService {
 	private boolean hasSipStack = false;
 	private boolean sipStackIsCorrupted = false;
 	private Integer udpTranportId, tcpTranportId, tlsTransportId;
-	public PreferencesWrapper prefsWrapper;
+	public PreferencesProviderWrapper prefsWrapper;
 	private PjStreamDialtoneGenerator dialtoneGenerator;
 
 	private Integer hasBeenHoldByGSM = null;
@@ -92,7 +99,7 @@ public class PjSipService {
 
 	public void setService(SipService aService) {
 		service = aService;
-		prefsWrapper = service.prefsWrapper;
+		prefsWrapper = service.getPrefs();
 	}
 
 	public boolean isCreated() {
@@ -157,6 +164,9 @@ public class PjSipService {
 			udpTranportId = null;
 			tcpTranportId = null;
 
+			// Pj timer
+			TimerWrapper.create(service);
+			
 			int status;
 			status = pjsua.create();
 
@@ -168,11 +178,10 @@ public class PjSipService {
 				pjsua_config cfg = new pjsua_config();
 				pjsua_logging_config logCfg = new pjsua_logging_config();
 				pjsua_media_config mediaCfg = new pjsua_media_config();
+				csipsimple_config cssCfg = new csipsimple_config();
+				
 
-				// GLOBAL CONFIG
-				pjsua.config_default(cfg);
-				Log.d(THIS_FILE, "default cb");
-				cfg.setCb(pjsuaConstants.WRAPPER_CALLBACK_STRUCT);
+				// SERVICE CONFIG
 
 				if (userAgentReceiver == null) {
 					Log.d(THIS_FILE, "create receiver....");
@@ -188,14 +197,39 @@ public class PjSipService {
 				pjsua.setCallbackObject(userAgentReceiver);
 
 				Log.d(THIS_FILE, "Attach is done to callback");
-
+				int isTurnEnabled = prefsWrapper.getTurnEnabled();
+				
+				// CSS CONFIG
+				pjsua.csipsimple_config_default(cssCfg);
+				cssCfg.setUse_compact_form_headers(prefsWrapper.getPreferenceBooleanValue(SipConfigManager.USE_COMPACT_FORM) ? pjsua.PJ_TRUE:pjsua.PJ_FALSE);
+				cssCfg.setUse_compact_form_sdp(prefsWrapper.getPreferenceBooleanValue(SipConfigManager.USE_COMPACT_FORM) ? pjsua.PJ_TRUE:pjsua.PJ_FALSE);
+				cssCfg.setUse_no_update(prefsWrapper.getPreferenceBooleanValue(SipConfigManager.FORCE_NO_UPDATE)? pjsua.PJ_TRUE:pjsua.PJ_FALSE);
+				if (isTurnEnabled == 1) {
+					cssCfg.setTurn_username(pjsua.pj_str_copy(prefsWrapper.getPreferenceStringValue(SipConfigManager.TURN_USERNAME)));
+					cssCfg.setTurn_password(pjsua.pj_str_copy(prefsWrapper.getPreferenceStringValue(SipConfigManager.TURN_PASSWORD)));
+				}
+				
+				// -- USE_ZRTP 1 is no_zrtp
+				cssCfg.setUse_zrtp( (prefsWrapper.getPreferenceIntegerValue(SipConfigManager.USE_ZRTP) > 1) ? pjsua.PJ_TRUE: pjsua.PJ_FALSE);
+				
 				// MAIN CONFIG
-				pjsua.set_use_compact_form(prefsWrapper.getPreferenceBooleanValue(SipConfigManager.USE_COMPACT_FORM) ? pjsua.PJ_TRUE:pjsua.PJ_FALSE);
+				pjsua.config_default(cfg);
+				cfg.setCb(pjsuaConstants.WRAPPER_CALLBACK_STRUCT);
 				cfg.setUser_agent(pjsua.pj_str_copy(prefsWrapper.getUserAgent(service)));
-				cfg.setThread_cnt(prefsWrapper.getThreadCount());
+				// With new timer implementation, thread count of pjsip can be 0 
+				// it will use less CPU since now thread are launched by alarmManager
+				cfg.setThread_cnt(0);
 				cfg.setUse_srtp(getUseSrtp());
 				cfg.setSrtp_secure_signaling(0);
-
+				
+				pjsip_timer_setting timerSetting = cfg.getTimer_setting();
+				int minSe = prefsWrapper.getPreferenceIntegerValue(SipConfigManager.TIMER_MIN_SE);
+				int sessExp = prefsWrapper.getPreferenceIntegerValue(SipConfigManager.TIMER_SESS_EXPIRES);
+				if(minSe <= sessExp && minSe >= 90) {
+					timerSetting.setMin_se(minSe);
+					timerSetting.setSess_expires(sessExp);
+					cfg.setTimer_setting(timerSetting);
+				}
 				// DNS
 				if (prefsWrapper.enableDNSSRV() && !prefsWrapper.useIPv6()) {
 					pj_str_t[] nameservers = getNameservers();
@@ -209,7 +243,7 @@ public class PjSipService {
 				// STUN
 				int isStunEnabled = prefsWrapper.getStunEnabled();
 				if (isStunEnabled == 1) {
-					String[] servers = prefsWrapper.getStunServer().split(",");
+					String[] servers = prefsWrapper.getPreferenceStringValue(SipConfigManager.STUN_SERVER).split(",");
 					cfg.setStun_srv_cnt(servers.length);
 					stunServers = cfg.getStun_srv();
 					for (String server : servers) {
@@ -234,30 +268,26 @@ public class PjSipService {
 				mediaCfg.setSnd_auto_close_time(prefsWrapper.getAutoCloseTime());
 				// Echo cancellation
 				mediaCfg.setEc_tail_len(prefsWrapper.getEchoCancellationTail());
-				mediaCfg.setEc_options(prefsWrapper.getEchoMode());
-				mediaCfg.setNo_vad(prefsWrapper.getNoVad());
+				mediaCfg.setEc_options(prefsWrapper.getPreferenceIntegerValue(SipConfigManager.ECHO_MODE));
+				mediaCfg.setNo_vad(prefsWrapper.getPreferenceBooleanValue(SipConfigManager.ENABLE_VAD) ?0:1);
 				mediaCfg.setQuality(prefsWrapper.getMediaQuality());
 				mediaCfg.setClock_rate(prefsWrapper.getClockRate());
-				mediaCfg.setAudio_frame_ptime(prefsWrapper.getAudioFramePtime());
-				mediaCfg.setHas_ioqueue(prefsWrapper.getHasIOQueue());
+				mediaCfg.setAudio_frame_ptime(prefsWrapper.getPreferenceIntegerValue(SipConfigManager.SND_PTIME));
+				mediaCfg.setHas_ioqueue(prefsWrapper.getPreferenceBooleanValue(SipConfigManager.HAS_IO_QUEUE)?1:0);
 				
 
 				// ICE
 				mediaCfg.setEnable_ice(prefsWrapper.getIceEnabled());
 				// TURN
-				int isTurnEnabled = prefsWrapper.getTurnEnabled();
 				if (isTurnEnabled == 1) {
 					mediaCfg.setEnable_turn(isTurnEnabled);
 					mediaCfg.setTurn_server(pjsua.pj_str_copy(prefsWrapper.getTurnServer()));
-					pjsua.set_turn_cfg(mediaCfg, pjsua.pj_str_copy(prefsWrapper.getPreferenceStringValue(SipConfigManager.TURN_USERNAME)),
-							pjsua.pj_str_copy(prefsWrapper.getPreferenceStringValue(SipConfigManager.TURN_PASSWORD)));
-
 				}
 
 				// INITIALIZE
-				status = pjsua.csipsimple_init(cfg, logCfg, mediaCfg);
+				status = pjsua.csipsimple_init(cfg, logCfg, mediaCfg, cssCfg);
 				if (status != pjsuaConstants.PJ_SUCCESS) {
-					String msg = "Fail to init pjsua " + pjsua.get_error_message(status).getPtr();
+					String msg = "Fail to init pjsua " + pjStrToString(pjsua.get_error_message(status));
 					Log.e(THIS_FILE, msg);
 					service.notifyUserOfMessage(msg);
 					cleanPjsua();
@@ -342,7 +372,7 @@ public class PjSipService {
 						status = pjsua.media_transports_create(cfg);
 					}
 					if (status != pjsuaConstants.PJ_SUCCESS) {
-						String msg = "Fail to add media transport " + pjsua.get_error_message(status).getPtr();
+						String msg = "Fail to add media transport " + pjStrToString(pjsua.get_error_message(status));
 						Log.e(THIS_FILE, msg);
 
 						service.notifyUserOfMessage(msg);
@@ -356,7 +386,7 @@ public class PjSipService {
 			status = pjsua.start();
 
 			if (status != pjsua.PJ_SUCCESS) {
-				String msg = "Fail to start pjsip  " + pjsua.get_error_message(status).getPtr();
+				String msg = "Fail to start pjsip  " + pjStrToString(pjsua.get_error_message(status));
 				Log.e(THIS_FILE, msg);
 				service.notifyUserOfMessage(msg);
 				cleanPjsua();
@@ -394,6 +424,7 @@ public class PjSipService {
 		}
 		if (created) {
 			cleanPjsua();
+			TimerWrapper.destroy();
 		}
 		Log.i(THIS_FILE, ">> Media m " + mediaManager);
 		return true;
@@ -434,32 +465,36 @@ public class PjSipService {
 
 		if (type.equals(pjsip_transport_type_e.PJSIP_TRANSPORT_TLS)) {
 			pjsip_tls_setting tlsSetting = cfg.getTls_setting();
-			/*
-			 * String serverName =
-			 * prefsWrapper.getPreferenceStringValue(PreferencesWrapper
-			 * .TLS_SERVER_NAME); if (!TextUtils.isEmpty(serverName)) {
-			 * tlsSetting.setServer_name(pjsua.pj_str_copy(serverName)); }
-			 * String caListFile =
-			 * prefsWrapper.getPreferenceStringValue(PreferencesWrapper
-			 * .CA_LIST_FILE); if (!TextUtils.isEmpty(caListFile)) {
-			 * tlsSetting.setCa_list_file(pjsua.pj_str_copy(caListFile)); }
-			 * String certFile =
-			 * prefsWrapper.getPreferenceStringValue(PreferencesWrapper
-			 * .CERT_FILE); if (!TextUtils.isEmpty(certFile)) {
-			 * tlsSetting.setCert_file(pjsua.pj_str_copy(certFile)); } String
-			 * privKey =
-			 * prefsWrapper.getPreferenceStringValue(PreferencesWrapper
-			 * .PRIVKEY_FILE); if (!TextUtils.isEmpty(privKey)) {
-			 * tlsSetting.setPrivkey_file(pjsua.pj_str_copy(privKey)); } String
-			 * tlsPwd =
-			 * prefsWrapper.getPreferenceStringValue(PreferencesWrapper.
-			 * TLS_PASSWORD); if (!TextUtils.isEmpty(tlsPwd)) {
-			 * tlsSetting.setPassword(pjsua.pj_str_copy(tlsPwd)); } boolean
-			 * checkClient =
-			 * prefsWrapper.getPreferenceBooleanValue(PreferencesWrapper
-			 * .TLS_VERIFY_CLIENT); tlsSetting.setVerify_client(checkClient ? 1
-			 * : 0);
-			 */
+			
+			
+			String serverName = prefsWrapper.getPreferenceStringValue(SipConfigManager.TLS_SERVER_NAME);
+			if (!TextUtils.isEmpty(serverName)) {
+				tlsSetting.setServer_name(pjsua.pj_str_copy(serverName)); 
+			}
+			
+			String caListFile = prefsWrapper.getPreferenceStringValue(SipConfigManager.CA_LIST_FILE); 
+			if (!TextUtils.isEmpty(caListFile)) {
+				tlsSetting.setCa_list_file(pjsua.pj_str_copy(caListFile)); 
+			}
+			
+			String certFile = prefsWrapper.getPreferenceStringValue(SipConfigManager.CERT_FILE); 
+			if (!TextUtils.isEmpty(certFile)) {
+				tlsSetting.setCert_file(pjsua.pj_str_copy(certFile)); 
+			}
+			
+			String privKey = prefsWrapper.getPreferenceStringValue(SipConfigManager.PRIVKEY_FILE); 
+			
+			if (!TextUtils.isEmpty(privKey)) {
+				tlsSetting.setPrivkey_file(pjsua.pj_str_copy(privKey)); 
+			}
+			
+			String tlsPwd = prefsWrapper.getPreferenceStringValue(SipConfigManager.TLS_PASSWORD); 
+			if (!TextUtils.isEmpty(tlsPwd)) {
+				tlsSetting.setPassword(pjsua.pj_str_copy(tlsPwd));
+			} 
+			
+			boolean checkClient = prefsWrapper.getPreferenceBooleanValue(SipConfigManager.TLS_VERIFY_CLIENT); 
+			tlsSetting.setVerify_client(checkClient ? 1 : 0);
 
 			tlsSetting.setMethod(prefsWrapper.getTLSMethod());
 			boolean checkServer = prefsWrapper.getPreferenceBooleanValue(SipConfigManager.TLS_VERIFY_SERVER);
@@ -479,7 +514,7 @@ public class PjSipService {
 
 		status = pjsua.transport_create(type, cfg, tId);
 		if (status != pjsuaConstants.PJ_SUCCESS) {
-			String errorMsg = pjsua.get_error_message(status).getPtr();
+			String errorMsg = pjStrToString(pjsua.get_error_message(status));
 			String msg = "Fail to create transport " + errorMsg + " (" + status + ")";
 			Log.e(THIS_FILE, msg);
 			if (status == 120098) { /* Already binded */
@@ -564,7 +599,7 @@ public class PjSipService {
 			}
 			
 			//If no registrar update state right now
-			if (TextUtils.isEmpty(account.cfg.getReg_uri().getPtr())) {
+			if (TextUtils.isEmpty( pjStrToString(account.cfg.getReg_uri()) ) ) {
 				service.updateRegistrationsState();
 				//Broadcast the information
 				Intent regStateChangedIntent = new Intent(SipManager.ACTION_SIP_REGISTRATION_CHANGED);
@@ -617,7 +652,7 @@ public class PjSipService {
 				} catch (IllegalArgumentException e) {
 					profileState.setStatusCode(SipCallSession.StatusCode.INTERNAL_SERVER_ERROR);
 				}
-				profileState.setStatusText(pjAccountInfo.getStatus_text().getPtr());
+				profileState.setStatusText(pjStrToString(pjAccountInfo.getStatus_text()));
 				profileState.setExpires(pjAccountInfo.getExpires());
 				
 				synchronized (profilesStatus) {
@@ -647,36 +682,43 @@ public class PjSipService {
 	private void initCodecs() throws SameThreadException {
 		if (codecs == null) {
 			int nbrCodecs = pjsua.codecs_get_nbr();
-			Log.d(THIS_FILE, "Codec nbr : " + nbrCodecs);
 			codecs = new ArrayList<String>();
 			for (int i = 0; i < nbrCodecs; i++) {
-				String codecId = pjsua.codecs_get_id(i).getPtr();
+				String codecId = pjStrToString(pjsua.codecs_get_id(i));
 				codecs.add(codecId);
-				Log.d(THIS_FILE, "Added codec " + codecId);
+				//Log.d(THIS_FILE, "Added codec " + codecId);
 			}
 			// Set it in prefs if not already set correctly
 			prefsWrapper.setCodecList(codecs);
-			prefsWrapper.setLibCapability(PreferencesWrapper.LIB_CAP_TLS,  (pjsua.can_use_tls() == pjsuaConstants.PJ_TRUE) );
-			prefsWrapper.setLibCapability(PreferencesWrapper.LIB_CAP_SRTP, (pjsua.can_use_srtp() == pjsuaConstants.PJ_TRUE) );
+			prefsWrapper.setLibCapability(PreferencesProviderWrapper.LIB_CAP_TLS,  (pjsua.can_use_tls() == pjsuaConstants.PJ_TRUE) );
+			prefsWrapper.setLibCapability(PreferencesProviderWrapper.LIB_CAP_SRTP, (pjsua.can_use_srtp() == pjsuaConstants.PJ_TRUE) );
 		}
 
 	}
 
 	private void setCodecsPriorities() throws SameThreadException {
 		if (codecs != null) {
-			for (String codec : codecs) {
-				if (prefsWrapper.hasCodecPriority(codec)) {
-					Log.d(THIS_FILE, "Set codec " + codec + " : " + prefsWrapper.getCodecPriority(codec, "130"));
-					pjsua.codec_set_priority(pjsua.pj_str_copy(codec), prefsWrapper.getCodecPriority(codec, "130"));
-
-					/*
-					 * pjmedia_codec_param param = new pjmedia_codec_param();
-					 * pjsua.codec_get_param(pjsua.pj_str_copy(codec), param);
-					 * param.getSetting().setPenh(0);
-					 * pjsua.codec_set_param(pjsua.pj_str_copy(codec), param );
-					 */
+			StringBuilder sb = new StringBuilder();
+			sb.append("Added codecs : ");
+			ConnectivityManager cm = ((ConnectivityManager) service.getSystemService(Context.CONNECTIVITY_SERVICE));
+			NetworkInfo ni = cm.getActiveNetworkInfo();
+			if(ni != null) {
+				String currentBandType = prefsWrapper.getPreferenceStringValue(SipConfigManager.getBandTypeKey(ni.getType(), ni.getSubtype()), 
+						SipConfigManager.CODEC_WB);
+				for (String codec : codecs) {
+					short aPrio = prefsWrapper.getCodecPriority(codec, currentBandType, "-1");
+					if(aPrio > 0) {
+						sb.append(codec);
+						sb.append(" (");
+						sb.append(aPrio);
+						sb.append(") - ");
+					}
+					if(aPrio >= 0) {
+						pjsua.codec_set_priority(pjsua.pj_str_copy(codec), aPrio);
+					}
 				}
 			}
+			Log.d(THIS_FILE, sb.toString());
 		}
 	}
 
@@ -809,11 +851,13 @@ public class PjSipService {
 
 			pj_str_t uri = pjsua.pj_str_copy(toCall.getCallee());
 			pj_str_t text = pjsua.pj_str_copy(message);
+			/*
 			Log.d(THIS_FILE, "get for outgoing");
+			int finalAccountId = accountId;
 			if (accountId == -1) {
-				accountId = pjsua.acc_find_for_outgoing(uri);
+				finalAccountId = pjsua.acc_find_for_outgoing(uri);
 			}
-
+			*/
 			// Nothing to do with this values
 			byte[] userData = new byte[1];
 
@@ -894,7 +938,7 @@ public class PjSipService {
 	public void setEchoCancellation(boolean on) throws SameThreadException {
 		if (created && userAgentReceiver != null) {
 			Log.d(THIS_FILE, "set echo cancelation " + on);
-			pjsua.set_ec(on ? prefsWrapper.getEchoCancellationTail() : 0, prefsWrapper.getEchoMode());
+			pjsua.set_ec(on ? prefsWrapper.getEchoCancellationTail() : 0, prefsWrapper.getPreferenceIntegerValue(SipConfigManager.ECHO_MODE));
 		}
 	}
 
@@ -911,31 +955,7 @@ public class PjSipService {
 		}
 	}
 
-	public void startRecording(int callId) {
-		if (created && userAgentReceiver != null) {
-			userAgentReceiver.startRecording(callId);
-		}
-	}
 
-	public void stopRecording() {
-		if (created && userAgentReceiver != null) {
-			userAgentReceiver.stopRecording();
-		}
-	}
-
-	public int getRecordedCall() {
-		if (created && userAgentReceiver != null) {
-			return userAgentReceiver.getRecordedCall();
-		}
-		return -1;
-	}
-
-	public boolean canRecord(int callId) {
-		if (created && userAgentReceiver != null) {
-			return userAgentReceiver.canRecord(callId);
-		}
-		return false;
-	}
 
 	public boolean setAccountRegistration(SipProfile account, int renew) throws SameThreadException {
 		int status = -1;
@@ -1033,6 +1053,7 @@ public class PjSipService {
 		SipProfile account = new SipProfile();
 		account.id = accountId;
 		SipProfileState profileState = getProfileState(account);
+		int finalAccountId = accountId;
 		
 		// If this is an invalid account id
 		if (accountId == SipProfile.INVALID_ID || !profileState.isAddedToStack()) {
@@ -1044,14 +1065,13 @@ public class PjSipService {
 				profileState = getProfileState(account);
 				valid = profileState.isAddedToStack();
 			}
-			
 			// If default account is not active
 			if (!valid) {
 				synchronized (profilesStatus) {
 					for (Integer accId : profilesStatus.keySet()) {
 						// Use the first account as valid account
 						if (accId != null) {
-							accountId = accId;
+							finalAccountId = accId;
 							pjsipAccountId = profilesStatus.get(accId).getPjsuaId();
 							break;
 						}
@@ -1059,7 +1079,7 @@ public class PjSipService {
 				}
 			} else {
 				// Use the default account
-				accountId = profileState.getDatabaseId();
+				finalAccountId = profileState.getDatabaseId();
 				pjsipAccountId = profileState.getPjsuaId();
 			}
 		} else {
@@ -1077,33 +1097,35 @@ public class PjSipService {
 		// Check integrity of callee field
 		Pattern p = Pattern.compile("^.*(?:<)?(sip(?:s)?):([^@]*@[^>]*)(?:>)?$", Pattern.CASE_INSENSITIVE);
 		Matcher m = p.matcher(callee);
+		String finalCallee = callee;
 
+		
 		if (!m.matches()) {
 			// Assume this is a direct call using digit dialer
-			Log.d(THIS_FILE, "default acc : " + accountId);
-			account = service.getAccount(accountId);
+			Log.d(THIS_FILE, "default acc : " + finalAccountId);
+			account = service.getAccount(finalAccountId);
 			String defaultDomain = account.getDefaultDomain();
 
 			Log.d(THIS_FILE, "default domain : " + defaultDomain);
 			p = Pattern.compile("^sip(s)?:[^@]*$", Pattern.CASE_INSENSITIVE);
 			if (p.matcher(callee).matches()) {
-				callee = "<" + callee + "@" + defaultDomain + ">";
+				finalCallee = "<" + callee + "@" + defaultDomain + ">";
 			} else {
 				// Should it be encoded?
-				callee = "<sip:" + /* Uri.encode( */callee/* ) */+ "@" + defaultDomain + ">";
+				finalCallee = "<sip:" + /* Uri.encode( */callee/* ) */+ "@" + defaultDomain + ">";
 			}
 		} else {
-			callee = "<" + m.group(1) + ":" + m.group(2) + ">";
+			finalCallee = "<" + m.group(1) + ":" + m.group(2) + ">";
 		}
 
-		Log.d(THIS_FILE, "will call " + callee);
-		if (pjsua.verify_sip_url(callee) == 0) {
+		Log.d(THIS_FILE, "will call " + finalCallee);
+		if (pjsua.verify_sip_url(finalCallee) == 0) {
 			// In worse worse case, find back the account id for uri.. but
 			// probably useless case
 			if (pjsipAccountId == SipProfile.INVALID_ID) {
-				pjsipAccountId = pjsua.acc_find_for_outgoing(pjsua.pj_str_copy(callee));
+				pjsipAccountId = pjsua.acc_find_for_outgoing(pjsua.pj_str_copy(finalCallee));
 			}
-			return new ToCall(pjsipAccountId, callee);
+			return new ToCall(pjsipAccountId, finalCallee);
 		}
 
 		return null;
@@ -1146,14 +1168,18 @@ public class PjSipService {
 		}
 	}
 
+	/*
 	public void sendKeepAlivePackets() throws SameThreadException {
 		ArrayList<SipProfileState> accounts = getActiveProfilesState();
 		for (SipProfileState acc : accounts) {
 			pjsua.send_keep_alive(acc.getPjsuaId());
 		}
-	}
+	}*/
 
 	public void zrtpSASVerified() throws SameThreadException {
+		if(!created) {
+			return;
+		}
 		pjsua.jzrtp_SASVerified();
 	}
 
@@ -1196,11 +1222,160 @@ public class PjSipService {
 	}
 
 	public void setNoSnd() throws SameThreadException {
+		if(!created) {
+			return;
+		}
 		pjsua.set_no_snd_dev();	
 	}
 	
 	public void setSnd() throws SameThreadException {
+		if(!created) {
+			return;
+		}
 		pjsua.set_snd_dev(0, 0);
 	}
 
+	
+	// About recording things
+
+	// Recorder
+	public static int INVALID_RECORD = -1; 
+	public int recordedCall = INVALID_RECORD;
+	private int recPort = -1;
+	private int recorderId = -1;
+	private int recordedConfPort = -1;
+	public void startRecording(int callId) {
+		// Ensure nothing is recording actually
+		if (recordedCall == INVALID_RECORD) {
+			SipCallSession callInfo = getCallInfo(callId);
+			if(callInfo == null || callInfo.getMediaStatus() != SipCallSession.MediaState.ACTIVE) {
+				return;
+			}
+			
+		    File mp3File = getRecordFile(callInfo.getRemoteContact());
+		    if (mp3File != null){
+				int[] recId = new int[1];
+				pj_str_t filename = pjsua.pj_str_copy(mp3File.getAbsolutePath());
+				int status = pjsua.recorder_create(filename, 0, (byte[]) null, 0, 0, recId);
+				if(status == pjsuaConstants.PJ_SUCCESS) {
+					recorderId = recId[0];
+					Log.d(THIS_FILE, "Record started : " + recorderId);
+					recordedConfPort = callInfo.getConfPort();
+					recPort = pjsua.recorder_get_conf_port(recorderId);
+					pjsua.conf_connect(recordedConfPort, recPort);
+					pjsua.conf_connect(0, recPort);
+					recordedCall = callId;
+				}
+		    }else {
+		    	//TODO: toaster
+		    	Log.w(THIS_FILE, "Impossible to write file");
+		    }
+		}
+	}
+	
+	public void stopRecording() {
+		if(!created) {
+			return;
+		}
+		Log.d(THIS_FILE, "Stop recording " + recordedCall+" et "+ recorderId);
+		if (recorderId != -1) {
+			pjsua.recorder_destroy(recorderId);
+			recorderId = -1;
+		}
+		recordedCall = INVALID_RECORD;
+	}
+	
+	public boolean canRecord(int callId) {
+		if (created && recordedCall == INVALID_RECORD) {
+			SipCallSession callInfo = getCallInfo(callId);
+			if(callInfo == null || callInfo.getMediaStatus() != SipCallSession.MediaState.ACTIVE) {
+				return false;
+			}
+			return true;
+		}
+		return false;
+	}
+	
+	public int getRecordedCall() {
+		return recordedCall; 
+	}
+	
+	private File getRecordFile(String remoteContact) {
+		File dir = PreferencesProviderWrapper.getRecordsFolder();
+	    if (dir != null){
+			Date d = new Date();
+			File file = new File(dir.getAbsoluteFile() + File.separator + sanitizeForFile(remoteContact)+ "_"+DateFormat.format("MM-dd-yy_kkmmss", d)+".wav");
+			Log.d(THIS_FILE, "Out dir " + file.getAbsolutePath());
+			return file;
+	    }
+	    return null;
+	}
+
+
+	private String sanitizeForFile(String remoteContact) {
+		String fileName = remoteContact;
+		fileName = fileName.replaceAll("[\\.\\\\<>:; \"\'\\*]", "_");
+		return fileName;
+	}
+
+
+	// Wave player 
+	int[] plId = null;
+	public final static int BITMASK_OUT = 1 << 0;
+	public final static int BITMASK_IN = 1 << 1;
+	public void playWaveFile(String filePath, int callId, int way) {
+		if(!created) {
+			return;
+		}
+		
+		// Create new player int holder or destroy existing one if any
+		if(plId == null) {
+			plId = new int[1];
+		}else {
+			pjsua.player_destroy(plId[0]);
+		}
+		
+		// Anyway we create a new player conf port.
+        pj_str_t filename = pjsua.pj_str_copy(filePath);
+        
+        int status = pjsua.player_create(filename, 1 /* PJMEDIA_FILE_NO_LOOP */, plId);
+        
+        if(status == pjsuaConstants.PJ_SUCCESS) {
+	        SipCallSession callInfo = getCallInfo(callId);
+	        
+	        int wavConfPort = callInfo.getConfPort();
+	        int wavPort = pjsua.player_get_conf_port(plId[0]);
+	        if( (way & BITMASK_OUT) == BITMASK_OUT) {
+	        	pjsua.conf_connect(wavPort, wavConfPort);
+	        }
+	        if( (way & BITMASK_IN) == BITMASK_IN) {
+	        	pjsua.conf_connect(wavPort, 0);
+	        }
+	        // Once connected, start to play
+	        pjsua.player_set_pos(plId[0], 0);
+        }
+	}
+
+	public void updateTransportIp(String oldIPAddress) throws SameThreadException {
+		if(!created) {
+			return;
+		}
+		Log.d(THIS_FILE, "Trying to update my address in the current call to "+oldIPAddress);
+		pjsua.update_transport(pjsua.pj_str_copy(oldIPAddress));
+	}
+
+	
+	public static String pjStrToString(pj_str_t pjStr) {
+		try {
+			if(pjStr != null) {
+				int len = pjStr.getSlen();
+				if(len > 0) { 
+					return pjStr.getPtr().substring(0, len);
+				}
+			}
+		}catch(StringIndexOutOfBoundsException e) {
+			Log.e(THIS_FILE, "Impossible to retrieve string from pjsip ", e);
+		}
+		return "";
+	}
 }

@@ -128,6 +128,7 @@ public final class SipCallSession implements Parcelable {
 	private boolean mediaSecure = false;
 	private long connectStart = 0;
 	private int lastStatusCode = 0;
+	private String mediaSecureInfo = "";
 	
 
 	public SipCallSession(Parcel in) {
@@ -154,6 +155,9 @@ public final class SipCallSession implements Parcelable {
 		dest.writeInt(confPort);
 		dest.writeInt(accId);
 		dest.writeInt(lastStatusCode);
+		dest.writeString(mediaSecureInfo);
+		dest.writeLong(connectStart);
+		dest.writeInt(mediaSecure?1:0);
 	}
 
 	public void readFromParcel(Parcel in) {
@@ -166,6 +170,9 @@ public final class SipCallSession implements Parcelable {
 		confPort = in.readInt();
 		accId = in.readInt();
 		lastStatusCode = in.readInt();
+		mediaSecureInfo = in.readString();
+		connectStart = in.readLong();
+		mediaSecure = (in.readInt() == 1);
 	}
 	
 
@@ -308,6 +315,13 @@ public final class SipCallSession implements Parcelable {
 
 	public void setMediaSecure(boolean mediaSecure2) {
 		mediaSecure = mediaSecure2;
+	}
+	
+	public void setMediaSecureInfo(String aInfo) {
+		mediaSecureInfo = aInfo;
+	}
+	public String getMediaSecureInfo() {
+		return mediaSecureInfo;
 	}
 
 	public boolean isLocalHeld(){

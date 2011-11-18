@@ -17,36 +17,60 @@
  */
 package com.csipsimple.wizards.impl;
 
+import android.text.InputType;
+
+import com.keyyomobile.android.voip.R;
 import com.csipsimple.api.SipConfigManager;
 import com.csipsimple.api.SipProfile;
 import com.csipsimple.utils.PreferencesWrapper;
 
-public class NexGenTel extends SimpleImplementation {
+public class Cellip extends SimpleImplementation {
 	
 	@Override
 	protected String getDomain() {
-		return "nexgentel.us";
+		return "sip1.cellip.com";
 	}
 	
 	@Override
 	protected String getDefaultName() {
-		return "NGeen";
+		return "Cellip";
+	}
+
+	
+	//Customization
+	@Override
+	public void fillLayout(final SipProfile account) {
+		super.fillLayout(account);
+		
+		accountUsername.setTitle(R.string.w_common_phone_number);
+		accountUsername.setDialogTitle(R.string.w_common_phone_number);
+		accountUsername.getEditText().setInputType(InputType.TYPE_CLASS_PHONE);
+		
+	}
+	@Override
+	public String getDefaultFieldSummary(String fieldName) {
+		if(fieldName.equals(USER_NAME)) {
+			return parent.getString(R.string.w_common_phone_number_desc);
+		}
+		return super.getDefaultFieldSummary(fieldName);
 	}
 	
 	
 	public SipProfile buildAccount(SipProfile account) {
 		account = super.buildAccount(account);
+		account.proxies = new String[] {"sip:193.105.226.30"};
 		account.transport = SipProfile.TRANSPORT_UDP;
 		return account;
 	}
 	
-
 	@Override
 	public void setDefaultParams(PreferencesWrapper prefs) {
 		super.setDefaultParams(prefs);
-		prefs.setPreferenceBooleanValue(SipConfigManager.ENABLE_DNS_SRV, true);
-		prefs.setPreferenceStringValue(SipConfigManager.OVERRIDE_NAMESERVER, "92.55.132.13");
+		// Add stun server
+		prefs.setPreferenceBooleanValue(SipConfigManager.ENABLE_STUN, true);
+		prefs.addStunServer("stun.mysecretary.net");
 	}
+	
 
 	@Override
 	public boolean needRestart() {

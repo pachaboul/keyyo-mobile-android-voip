@@ -30,13 +30,13 @@ import android.net.wifi.WifiManager;
 import android.net.wifi.WifiManager.WifiLock;
 import android.os.PowerManager;
 import android.os.PowerManager.WakeLock;
-import android.preference.PreferenceManager;
 import android.provider.Settings;
 
 import com.csipsimple.api.MediaState;
 import com.csipsimple.api.SipConfigManager;
 import com.csipsimple.api.SipManager;
 import com.csipsimple.service.SipService.SameThreadException;
+import com.csipsimple.service.SipService.SipRunnable;
 import com.csipsimple.utils.Compatibility;
 import com.csipsimple.utils.Log;
 import com.csipsimple.utils.Ringer;
@@ -92,7 +92,8 @@ public class MediaManager {
 	public MediaManager(SipService aService) {
 		service = aService;
 		audioManager = (AudioManager) service.getSystemService(Context.AUDIO_SERVICE);
-		prefs = PreferenceManager.getDefaultSharedPreferences(service);
+		prefs = service.getSharedPreferences("audio", Context.MODE_PRIVATE);
+		//prefs = PreferenceManager.getDefaultSharedPreferences(service);
 		accessibilityManager = AccessibilityWrapper.getInstance();
 		accessibilityManager.init(service);
 		
@@ -113,10 +114,10 @@ public class MediaManager {
 			audioFocusWrapper = AudioFocusWrapper.getInstance();
 			audioFocusWrapper.init(service, audioManager);
 		}
-		MODE_SIP_IN_CALL = service.prefsWrapper.getInCallMode();
-		USE_SGS_WRK_AROUND = service.prefsWrapper.getPreferenceBooleanValue(SipConfigManager.USE_SGS_CALL_HACK);
-		USE_WEBRTC_IMPL = service.prefsWrapper.getPreferenceBooleanValue(SipConfigManager.USE_WEBRTC_HACK);
-		DO_FOCUS_AUDIO = service.prefsWrapper.getPreferenceBooleanValue(SipConfigManager.DO_FOCUS_AUDIO);
+		MODE_SIP_IN_CALL = service.getPrefs().getInCallMode();
+		USE_SGS_WRK_AROUND = service.getPrefs().getPreferenceBooleanValue(SipConfigManager.USE_SGS_CALL_HACK);
+		USE_WEBRTC_IMPL = service.getPrefs().getPreferenceBooleanValue(SipConfigManager.USE_WEBRTC_HACK);
+		DO_FOCUS_AUDIO = service.getPrefs().getPreferenceBooleanValue(SipConfigManager.DO_FOCUS_AUDIO);
 	}
 	
 	public void stopService() {
@@ -129,15 +130,16 @@ public class MediaManager {
 	private int getAudioTargetMode() {
 		int targetMode = MODE_SIP_IN_CALL;
 		
-		if(service.prefsWrapper.getUseModeApi()) {
+		if(service.getPrefs().getUseModeApi()) {
 			Log.d(THIS_FILE, "User want speaker now..."+userWantSpeaker);
-			if(!service.prefsWrapper.generateForSetCall()) {
+			if(!service.getPrefs().generateForSetCall()) {
 				return userWantSpeaker ? AudioManager.MODE_NORMAL : AudioManager.MODE_IN_CALL;
 			}else {
 				return userWantSpeaker ? AudioManager.MODE_IN_CALL: AudioManager.MODE_NORMAL ;
 			}
 		}
-		
+
+		Log.d(THIS_FILE, "Target mode... : " + targetMode);
 		return targetMode;
 	}
 	
@@ -206,7 +208,7 @@ public class MediaManager {
 			}
 			
 			//This wake lock purpose is to prevent PSP wifi mode 
-			if(service.prefsWrapper.keepAwakeInCall()) {
+			if(service.getPrefs().getPreferenceBooleanValue(SipConfigManager.KEEP_AWAKE_IN_CALL)) {
 				if(screenLock == null) {
 					PowerManager pm = (PowerManager) service.getSystemService(Context.POWER_SERVICE);
 		            screenLock = pm.newWakeLock(PowerManager.SCREEN_DIM_WAKE_LOCK | PowerManager.ON_AFTER_RELEASE, "com.csipsimple.onIncomingCall.SCREEN");
@@ -237,9 +239,9 @@ public class MediaManager {
 			int targetMode = getAudioTargetMode();
 			Log.d(THIS_FILE, "Set mode audio in call to "+targetMode);
 			
-			if(service.prefsWrapper.generateForSetCall()) {
+			if(service.getPrefs().generateForSetCall()) {
 				ToneGenerator toneGenerator = new ToneGenerator( AudioManager.STREAM_VOICE_CALL, 1);
-				toneGenerator.startTone(ToneGenerator.TONE_CDMA_CONFIRM);
+				toneGenerator.startTone(41 /*ToneGenerator.TONE_CDMA_CONFIRM*/);
 				toneGenerator.stopTone();
 				toneGenerator.release();
 			}
@@ -254,7 +256,7 @@ public class MediaManager {
 			audioManager.setMode(targetMode);
 			
 			//Routing
-			if(service.prefsWrapper.getUseRoutingApi()) {
+			if(service.getPrefs().getUseRoutingApi()) {
 				audioManager.setRouting(targetMode, userWantSpeaker?AudioManager.ROUTE_SPEAKER:AudioManager.ROUTE_EARPIECE, AudioManager.ROUTE_ALL);
 			}else {
 				audioManager.setSpeakerphoneOn(userWantSpeaker ? true : false);
@@ -328,7 +330,10 @@ public class MediaManager {
 			}
 			audioFocusWrapper.focus();
 		}
-		setStreamVolume(inCallStream,  (int) (audioManager.getStreamMaxVolume(inCallStream)*service.prefsWrapper.getInitialVolumeLevel()),  0);
+		Log.d(THIS_FILE, "Initial volume level : " + service.getPrefs().getInitialVolumeLevel());
+		setStreamVolume(inCallStream,  
+				(int) (audioManager.getStreamMaxVolume(inCallStream) * service.getPrefs().getInitialVolumeLevel()),  
+				0);
 		
 		
 		isSetAudioMode = true;
@@ -356,7 +361,7 @@ public class MediaManager {
 		ed.putInt("savedVolume", audioManager.getStreamVolume(inCallStream));
 		
 		int targetMode = getAudioTargetMode();
-		if(service.prefsWrapper.getUseRoutingApi()) {
+		if(service.getPrefs().getUseRoutingApi()) {
 			ed.putInt("savedRoute", audioManager.getRouting(targetMode));
 		}else {
 			ed.putBoolean("savedSpeakerPhone", audioManager.isSpeakerphoneOn());
@@ -384,7 +389,7 @@ public class MediaManager {
 		setStreamVolume(inCallStream, prefs.getInt("savedVolume", (int)(audioManager.getStreamMaxVolume(inCallStream)*0.8) ), 0);
 		
 		int targetMode = getAudioTargetMode();
-		if(service.prefsWrapper.getUseRoutingApi()) {
+		if(service.getPrefs().getUseRoutingApi()) {
 			audioManager.setRouting(targetMode, prefs.getInt("savedRoute", AudioManager.ROUTE_SPEAKER), AudioManager.ROUTE_ALL);
 		}else {
 			audioManager.setSpeakerphoneOn(prefs.getBoolean("savedSpeakerPhone", false));
@@ -532,18 +537,18 @@ public class MediaManager {
 	public void setSoftwareVolume(){
 		
 		if(service != null) {
-			service.getExecutor().execute(service.new SipRunnable() {
+			final boolean useBT = (bluetoothWrapper != null && bluetoothWrapper.isBluetoothOn());
+			
+			String speaker_key = useBT ? SipConfigManager.SND_BT_SPEAKER_LEVEL : SipConfigManager.SND_SPEAKER_LEVEL;
+			String mic_key = useBT ? SipConfigManager.SND_BT_MIC_LEVEL : SipConfigManager.SND_MIC_LEVEL;
+			
+			final float speakVolume = service.getPrefs().getPreferenceFloatValue(speaker_key);
+			final float micVolume = userWantMicrophoneMute? 0 : service.getPrefs().getPreferenceFloatValue(mic_key);
+			
+			service.getExecutor().execute(new SipRunnable() {
 				
 				@Override
 				protected void doRun() throws SameThreadException {
-					boolean useBT = (bluetoothWrapper != null && bluetoothWrapper.isBluetoothOn());
-					
-					String speaker_key = useBT ? SipConfigManager.SND_BT_SPEAKER_LEVEL : SipConfigManager.SND_SPEAKER_LEVEL;
-					String mic_key = useBT ? SipConfigManager.SND_BT_MIC_LEVEL : SipConfigManager.SND_MIC_LEVEL;
-					
-					float speakVolume = service.prefsWrapper.getPreferenceFloatValue(speaker_key);
-					float micVolume = userWantMicrophoneMute? 0 : service.prefsWrapper.getPreferenceFloatValue(mic_key);
-
 					service.confAdjustTxLevel(speakVolume);
 					service.confAdjustRxLevel(micVolume);
 					
@@ -585,10 +590,18 @@ public class MediaManager {
 	public void adjustStreamVolume(int streamType, int direction, int flags) {
 		broadcastVolumeWillBeUpdated(streamType, EXTRA_VALUE_UNKNOWN);
         audioManager.adjustStreamVolume(streamType, direction, flags);
-        
         if(streamType == AudioManager.STREAM_RING) {
         	// Update ringer 
         	ringer.updateRingerMode();
+        }
+        
+        int inCallStream = Compatibility.getInCallStream();
+        if(streamType == inCallStream) {
+        	int maxLevel = audioManager.getStreamMaxVolume(inCallStream);
+        	float modifiedLevel = (audioManager.getStreamVolume(inCallStream)/(float) maxLevel)*10.0f;
+        	// Update default stream level
+            service.getPrefs().setPreferenceFloatValue(SipConfigManager.SND_STREAM_LEVEL, modifiedLevel);
+        	
         }
 	}
 	

@@ -29,7 +29,7 @@
 <string name="use_other_in_desc">For example WiMax for incoming calls</string>
 <string name="use_other_out_desc">For example WiMax for outgoing calls</string>
 
-<string name="use_3g">Use 3G</string>
+<string name="use_3g">Use 3G (and better)</string>
 <string name="use_3g_disclamer">Your carrier MUST allow you to use this option</string>
 <string name="use_edge">Use EDGE</string>
 <string name="use_gprs">Use GPRS</string>
@@ -83,7 +83,12 @@
 <string name="user_agent_desc">Agent presented by the application (if default will add infos)</string>
 <string name="ka_use_wake">Keep alive awake</string>
 <string name="ka_use_wake_desc">If activated keep alive will awake phone</string>
-
+<string name="force_no_update">Force no update</string>
+<string name="force_no_update_desc">Some buggy remote party announce to support UPDATE method while it does not, this option force the legacy way to manage UPDATE/re-INVITE</string>
+<string name="timer_min_se">Minimum session expiration</string>
+<string name="timer_min_se_desc">Minimum session expiration period, in seconds. Must not be lower than 90.</string>
+<string name="timer_sess_expires">Session expiration period</string>
+<string name="timer_sess_expires_desc">Session expiration period, in seconds. Must not be lower than min_se.</string>
 
 <!-- Security -->
 <string name="tls">TLS</string>
@@ -146,6 +151,7 @@
 <string name="codecs_desc">Priority (0 is disabled)</string>
 <string name="sip_dtmf">DTMF mode</string>
 <string name="sip_dtmf_desc">How to send DTMF</string>
+
 <string name="use_soft_volume">Use software volume</string>
 <string name="use_soft_volume_desc">Use software volume instead of android volume</string>
 <string name="use_routing_api">Use routing API</string>
@@ -158,8 +164,6 @@
 <string name="use_webrtc_hack_desc">Implementation made by WebRTC team</string>
 <string name="do_focus_audio">Focus audio</string>
 <string name="do_focus_audio_desc">Disabling will result overlaps with music but may help with routing</string>
-
-
 
 <string name="micro_source">Micro source</string>
 <string name="micro_source_desc">Source for micro. Choosing the appropriate value may improve echo cancellation</string>
