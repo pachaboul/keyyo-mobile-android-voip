@@ -84,7 +84,6 @@ import com.csipsimple.api.SipCallSession;
 import com.csipsimple.api.SipConfigManager;
 import com.csipsimple.api.SipManager;
 import com.csipsimple.api.SipProfile;
-import com.csipsimple.pjsip.PjSipCalls;
 import com.csipsimple.service.SipService;
 import com.csipsimple.utils.CallsUtils;
 import com.csipsimple.utils.CustomDistribution;
@@ -259,7 +258,8 @@ public class InCallActivity2 extends Activity implements OnTriggerListener, OnDi
         if(proximitySensor != null && powerManager != null) {
 	        WifiManager wman = (WifiManager) getSystemService(Context.WIFI_SERVICE);
 			WifiInfo winfo = wman.getConnectionInfo();
-			if(winfo == null || !prefsWrapper.keepAwakeInCall()) {
+			if(winfo == null || 
+					!prefsWrapper.getPreferenceBooleanValue(SipConfigManager.KEEP_AWAKE_IN_CALL) ) {
 				// Try to use powermanager proximity sensor
 				try {
 					Method method = powerManager.getClass().getDeclaredMethod("getSupportedWakeLockFlags");
@@ -1149,20 +1149,22 @@ public class InCallActivity2 extends Activity implements OnTriggerListener, OnDi
 					break;
 				}
 				case DETAILED_DISPLAY:{
-					String infos = PjSipCalls.dumpCallInfo(call.getCallId());
-					Log.d(THIS_FILE, infos);
-					SpannableStringBuilder buf = new SpannableStringBuilder();
-					Builder builder = new AlertDialog.Builder(this);
-					
-					buf.append(infos);
-					TextAppearanceSpan textSmallSpan = new TextAppearanceSpan(this, android.R.style.TextAppearance_Small);
-					buf.setSpan(textSmallSpan, 0, buf.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
-					
-					AlertDialog dialog = builder.setIcon(android.R.drawable.ic_dialog_info)
-						.setMessage(buf)
-						.setNeutralButton(R.string.ok, null)
-						.create();
-					dialog.show();
+					if(service != null) {
+						String infos = service.showCallInfosDialog(call.getCallId());
+
+						SpannableStringBuilder buf = new SpannableStringBuilder();
+						Builder builder = new AlertDialog.Builder(this);
+						
+						buf.append(infos);
+						TextAppearanceSpan textSmallSpan = new TextAppearanceSpan(this, android.R.style.TextAppearance_Small);
+						buf.setSpan(textSmallSpan, 0, buf.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+						
+						AlertDialog dialog = builder.setIcon(android.R.drawable.ic_dialog_info)
+							.setMessage(buf)
+							.setNeutralButton(R.string.ok, null)
+							.create();
+						dialog.show();
+					}
 					break;
 				}
 				case TOGGLE_HOLD:{

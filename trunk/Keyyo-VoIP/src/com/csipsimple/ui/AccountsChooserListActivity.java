@@ -17,12 +17,11 @@
  */
 package com.csipsimple.ui;
 
+import java.util.HashMap;
 import java.util.List;
 
 import android.app.Activity;
 import android.content.Context;
-import android.content.pm.PackageManager;
-import android.content.pm.ResolveInfo;
 import android.content.res.TypedArray;
 import android.graphics.Typeface;
 import android.graphics.drawable.Drawable;
@@ -45,7 +44,8 @@ import android.widget.TextView;
 import com.keyyomobile.android.voip.R;
 import com.csipsimple.api.SipProfile;
 import com.csipsimple.db.DBAdapter;
-import com.csipsimple.utils.Compatibility;
+import com.csipsimple.utils.CallHandler;
+import com.csipsimple.utils.CallHandler.onLoadListener;
 import com.csipsimple.wizards.WizardUtils;
 import com.csipsimple.wizards.WizardUtils.WizardInfo;
 
@@ -74,7 +74,7 @@ public abstract class AccountsChooserListActivity extends Activity implements On
     	
 		// Fill accounts with currently avalaible accounts
 		updateList();
-		bindAddedRows();
+		addExternalRows();
 		
 		accountsListView = (ListView) findViewById(R.id.account_list);
 		
@@ -138,24 +138,19 @@ public abstract class AccountsChooserListActivity extends Activity implements On
 	}
 	
 
-	private void bindAddedRows() {
-		PackageManager pm = getPackageManager();
-		List<ResolveInfo> callers = Compatibility.getIntentsForCall(this);
-		if(callers == null) {
-			return;
+	private void addExternalRows() {
+
+		HashMap<String, String> callHandlers = CallHandler.getAvailableCallHandlers(this);
+		for(String packageName : callHandlers.keySet()) {
+			CallHandler ch = new CallHandler(this);
+			ch.loadFrom(packageName, null, new onLoadListener() {
+				@Override
+				public void onLoad(final CallHandler ch) {
+					addRow(ch.getLabel(), ch.getIconDrawable(), ch.getFakeProfile());
+				}
+			});
 		}
-		int index = 1; 
-		for(final ResolveInfo caller : callers) {
-			// Add row if possible
-			// Exclude GSM
-			SipProfile gsmProfile = new SipProfile();
-			gsmProfile.id = SipProfile.INVALID_ID - index;
 		
-			final SipProfile acc = gsmProfile;
-			addRow(caller.loadLabel(pm), caller.loadIcon(pm), acc);
-			
-			index ++;
-		}
 	}
 
     private synchronized void updateList() {

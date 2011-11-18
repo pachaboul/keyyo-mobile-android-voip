@@ -54,7 +54,7 @@ public final class PjSipCalls {
 	
 	private static SipCallSession updateSession(SipCallSession session, pjsua_call_info pjCallInfo, PjSipService service) {
 		session.setCallId(pjCallInfo.getId());
-		
+
 		try {
 			int status_code = pjCallInfo.getLast_status().swigValue();
 			session.setLastStatusCode(status_code);
@@ -66,7 +66,7 @@ public final class PjSipCalls {
 		//Hey lucky man we have nothing to think about here cause we have a bijection between int / state
 		session.setCallState( pjCallInfo.getState().swigValue() );
 		session.setMediaStatus( pjCallInfo.getMedia_status().swigValue() );
-		session.setRemoteContact( pjCallInfo.getRemote_info().getPtr() );
+		session.setRemoteContact( PjSipService.pjStrToString(pjCallInfo.getRemote_info()) );
 		session.setConfPort( pjCallInfo.getConf_slot() );
 		
 		int pjAccId = pjCallInfo.getAcc_id();
@@ -94,13 +94,22 @@ public final class PjSipCalls {
 		//	throw new UnavailableException();
 		}else {
 			session = updateSession(session, pj_info, service);
-			session.setMediaSecure(pjsua.is_call_secure(session.getCallId()) == pjsuaConstants.PJ_TRUE);
+			boolean secured = (pjsua.is_call_secure(session.getCallId()) == pjsuaConstants.PJ_TRUE);
+			if(secured) {
+				session.setMediaSecureInfo("SRTP");
+			}else {
+				if(service.userAgentReceiver.zrtpOn) {
+					secured = true;
+					session.setMediaSecureInfo("ZRTP : "+service.userAgentReceiver.sasString);
+				}
+			}
+			session.setMediaSecure(secured);
 		}
 		return session;
 	}
 	
-	public static String dumpCallInfo(int callId) {
-		return pjsua.call_dump(callId, pjsua.PJ_TRUE, " ").getPtr();
+	public static String dumpCallInfo(int callId) throws SameThreadException {
+		return PjSipService.pjStrToString(pjsua.call_dump(callId, pjsua.PJ_TRUE, " "));
 	}
 	
 }

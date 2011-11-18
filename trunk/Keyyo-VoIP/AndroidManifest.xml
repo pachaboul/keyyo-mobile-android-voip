@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android" package="com.keyyomobile.android.voip"
 	android:installLocation="auto"
-	android:versionName="0.02-03" android:versionCode="946">
+	android:versionName="0.03-01" android:versionCode="1108">
 	<supports-screens  
 		android:smallScreens="true" 
 		android:normalScreens="true"
@@ -31,18 +31,25 @@
 		</activity>
 		
 		<!-- Main service -->
-		<service android:name="com.csipsimple.service.SipService" android:exported="true">
+		<service android:name="com.csipsimple.service.SipService" android:exported="true"
+			android:process=":sipStack">
 			<intent-filter>
 				<action android:name="com.csipsimple.service.SipService" />
 				<action android:name="com.csipsimple.service.SipConfiguration" />
 			</intent-filter>
 		</service>
-		<receiver android:name="com.csipsimple.service.DeviceStateReceiver">
+		<receiver android:name="com.csipsimple.service.DeviceStateReceiver"
+		    android:process=":sipStack">
 			<intent-filter>
 				<action android:name="android.net.conn.CONNECTIVITY_CHANGE"></action>
 				<action android:name="android.intent.action.ANY_DATA_STATE"></action>
 				<action android:name="android.intent.action.BOOT_COMPLETED"></action>
 				<action android:name="com.csipsimple.accounts.activate"></action>
+			</intent-filter>
+			<intent-filter >
+				<action android:name="android.intent.action.PACKAGE_ADDED" />
+				<action android:name="android.intent.action.PACKAGE_REMOVED" />
+				<data android:scheme="package" />
 			</intent-filter>
 		</receiver>
 		
@@ -87,9 +94,9 @@
                  <category android:name="android.intent.category.DEFAULT" />
 			</intent-filter>
 		</activity>
-		<activity android:name="com.csipsimple.ui.prefs.Codecs" android:theme="@android:style/Theme.NoTitleBar" android:configChanges="orientation"></activity>
-		<activity android:name="com.csipsimple.ui.prefs.PrefsSecurity" android:theme="@android:style/Theme.NoTitleBar" android:configChanges="orientation"></activity>
-		<activity android:name="com.csipsimple.ui.prefs.AudioTester" android:theme="@style/CupcakeDialog" android:screenOrientation="portrait"></activity>
+		<activity android:name="com.csipsimple.ui.prefs.Codecs" android:theme="@android:style/Theme.NoTitleBar" android:configChanges="orientation" />
+		<activity android:name="com.csipsimple.ui.prefs.PrefsSecurity" android:theme="@android:style/Theme.NoTitleBar" android:configChanges="orientation" />
+		<activity android:name="com.csipsimple.ui.prefs.AudioTester" android:theme="@style/CupcakeDialog" android:screenOrientation="portrait" android:label="@string/test_audio"/>
 		
 
 		<!-- Wizards -->
@@ -217,7 +224,18 @@
                   android:windowSoftInputMode="stateHidden" android:configChanges="orientation"
                   android:launchMode="singleTop" />
 		
+		<!-- Embedded plugins -->
+		<!-- Call handlers -->
+		<receiver android:name="com.csipsimple.plugins.telephony.CallHandler" android:permission="android.permission.PROCESS_OUTGOING_CALLS">
+			<intent-filter>
+				<action android:name="com.csipsimple.phone.action.HANDLE_CALL" />
+			</intent-filter>
+		</receiver>
 		
+		    
+		<provider android:name="com.csipsimple.service.PreferenceProvider"
+                  android:authorities="com.csipsimple.prefs" />
+		    
 	</application>
 	<uses-sdk android:minSdkVersion="3" android:targetSdkVersion="9"/>
 	<uses-permission android:name="android.permission.INTERNET"/>
@@ -250,7 +268,7 @@
 	<uses-feature android:name="android.hardware.microphone" android:required="true"></uses-feature>
 	<uses-feature android:name="android.hardware.touchscreen" android:required="false"></uses-feature>
 	<uses-feature android:name="android.hardware.bluetooth" android:required="false"></uses-feature>
-	
+	<uses-feature android:name="android.hardware.screen.portrait" android:required="false"></uses-feature>
 	
 	<permission android:name="android.permission.USE_SIP"
         android:label="@string/permlab_useSip"

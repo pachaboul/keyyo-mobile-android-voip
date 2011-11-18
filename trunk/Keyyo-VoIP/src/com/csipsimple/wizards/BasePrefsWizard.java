@@ -298,7 +298,7 @@ public class BasePrefsWizard extends GenericPrefs{
 			
 		}else{
 			//TODO : should not be done there but if not we should add an option to re-apply default params
-			//wizard.setDefaultParams(prefs);
+			wizard.setDefaultParams(prefs);
 			database.updateAccount(account);
 		}
 		database.close();

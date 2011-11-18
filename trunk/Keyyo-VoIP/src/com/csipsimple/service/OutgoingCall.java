@@ -17,22 +17,27 @@
  */
 package com.csipsimple.service;
 
+import java.util.HashMap;
+
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
 import android.telephony.PhoneNumberUtils;
 
+import com.csipsimple.api.SipConfigManager;
+import com.csipsimple.utils.CallHandler;
 import com.csipsimple.utils.Log;
-import com.csipsimple.utils.PreferencesWrapper;
+import com.csipsimple.utils.PreferencesProviderWrapper;
 
 public class OutgoingCall extends BroadcastReceiver {
 
 	private static final String THIS_FILE = "Outgoing RCV";
 	private Context context;
-	private PreferencesWrapper prefsWrapper;
+	private PreferencesProviderWrapper prefsWrapper;
 	
 	public static String ignoreNext = "";
+	
 
 	@Override
 	public void onReceive(Context aContext, Intent intent) {
@@ -53,20 +58,28 @@ public class OutgoingCall extends BroadcastReceiver {
 		
 		
 		context = aContext;
-		prefsWrapper = new PreferencesWrapper(context);
+		prefsWrapper = new PreferencesProviderWrapper(context);
 		
 		//Log.d(THIS_FILE, "act=" + action + " num=" + number + " fnum=" + full_number + " ignx=" + ignoreNext);	
 		
-		if (!prefsWrapper.useIntegrateDialer() || ignoreNext.equalsIgnoreCase(number) || action == null) {
+		if ( !prefsWrapper.getPreferenceBooleanValue(SipConfigManager.INTEGRATE_WITH_DIALER, true) || 
+				ignoreNext.equalsIgnoreCase(number) || 
+				action == null) {
+			
 			Log.d(THIS_FILE, "Our selector disabled, or Mobile chosen in our selector, send to tel");
 			ignoreNext = "";
 			setResultData(number);
 			return;
 		}
 		
+		//Compute remote apps that could receive the outgoing call itnent through our api
+		HashMap<String, String> potentialHandlers = CallHandler.getAvailableCallHandlers(context);
+		Log.d(THIS_FILE, "We have "+potentialHandlers.size()+" potential handlers");
+		
 		// If this is an outgoing call with a valid number
-		if (action.equals(Intent.ACTION_NEW_OUTGOING_CALL)) {
-			if(prefsWrapper.isValidConnectionForOutgoing()) {
+		if (action.equals(Intent.ACTION_NEW_OUTGOING_CALL) ) {
+			// If sip is there or there is at least 2 call handlers (if only one we assume that's the embed gsm one !
+			if(prefsWrapper.isValidConnectionForOutgoing() || potentialHandlers.size() > 1) {
 				// Just to be sure of what is incoming : sanitize phone number (in case of it was not properly done by dialer
 				// Or by a third party app
 				number = PhoneNumberUtils.convertKeypadLettersToDigits(number);
@@ -83,8 +96,6 @@ public class OutgoingCall extends BroadcastReceiver {
 				setResultData(null);
 				return;
 			}
-			
-			
 		}
 		
 		

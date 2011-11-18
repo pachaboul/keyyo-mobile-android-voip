@@ -1,6 +1,5 @@
 /**
  * Copyright (C) 2010 Regis Montoya (aka r3gis - www.r3gis.fr)
- * Copyright (C) 2010 Jan Tschirschwitz <jan.tschirschwitz@googlemail.com>
  * This file is part of CSipSimple.
  *
  *  CSipSimple is free software: you can redistribute it and/or modify
@@ -55,6 +54,7 @@ import com.csipsimple.ui.prefs.PrefsFast;
 import com.csipsimple.utils.Compatibility;
 import com.csipsimple.utils.CustomDistribution;
 import com.csipsimple.utils.Log;
+import com.csipsimple.utils.PreferencesProviderWrapper;
 import com.csipsimple.utils.PreferencesWrapper;
 import com.csipsimple.widgets.IndicatorTab;
 import com.csipsimple.wizards.BasePrefsWizard;
@@ -72,7 +72,7 @@ public class SipHome extends TabActivity {
 	public static final String LAST_KNOWN_ANDROID_VERSION_PREF = "last_known_aos_version";
 	public static final String HAS_ALREADY_SETUP = "has_already_setup";
 
-	private static final String THIS_FILE = "SIP HOME";
+	private static final String THIS_FILE = "SIP_HOME";
 	
 	private static final String TAB_DIALER = "dialer";
 	private static final String TAB_CALLLOG = "calllog";
@@ -85,14 +85,19 @@ public class SipHome extends TabActivity {
 
 	private Intent dialerIntent,calllogsIntent, messagesIntent;
 	private PreferencesWrapper prefWrapper;
-
+	private PreferencesProviderWrapper prefProviderWrapper;
+	
 	private boolean has_tried_once_to_activate_account = false;
 //	private ImageButton pickupContact;
 
+
+	
+	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
-		Log.d(THIS_FILE, "On Create SIPHOME");
+		
 		prefWrapper = new PreferencesWrapper(this);
+		prefProviderWrapper = new PreferencesProviderWrapper(this);
 		super.onCreate(savedInstanceState);
 		
 		boolean useBundle = NativeLibManager.USE_BUNDLE;
@@ -138,7 +143,6 @@ public class SipHome extends TabActivity {
 			}
 		}
 		
-		
 
 		setContentView(R.layout.home);
 
@@ -151,7 +155,6 @@ public class SipHome extends TabActivity {
 		if(CustomDistribution.supportMessaging()) {
 			addTab(TAB_MESSAGES, getString(R.string.messages_tab_name_text), R.drawable.ic_tab_unselected_messages, R.drawable.ic_tab_selected_messages, messagesIntent);
 		}
-		
 		/*
 		pickupContact = (ImageButton) findViewById(R.id.pickup_contacts);
 		pickupContact.setOnClickListener(new OnClickListener() {
@@ -163,13 +166,13 @@ public class SipHome extends TabActivity {
 		*/
 		
 		has_tried_once_to_activate_account = false;
-		
 
 		if(!prefWrapper.getPreferenceBooleanValue(SipConfigManager.PREVENT_SCREEN_ROTATION)) {
 			setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_SENSOR);
 		}
 		
 		selectTabWithAction(getIntent());
+		Log.setLogLevel(prefWrapper.getLogLevel());
 		
 		// Check for gingerbread warnings
 		/*
@@ -293,6 +296,7 @@ public class SipHome extends TabActivity {
 		}
 	}
 	
+	private Method setIndicatorMethod = null;
 	
 	private void addTab(String tag, String label, int icon, int ficon, Intent content) {
 		TabHost tabHost = getTabHost();
@@ -303,8 +307,10 @@ public class SipHome extends TabActivity {
 			IndicatorTab icTab = new IndicatorTab(this, null);
 			icTab.setResources(label, icon, ficon);
 			try {
-				Method method = tabspecDialer.getClass().getDeclaredMethod("setIndicator", View.class);
-				method.invoke(tabspecDialer, icTab);
+				if(setIndicatorMethod == null) {
+					setIndicatorMethod = tabspecDialer.getClass().getDeclaredMethod("setIndicator", View.class);
+				}
+				setIndicatorMethod.invoke(tabspecDialer, icTab);
 				fails = false;
 			} catch (Exception e) {
 				Log.d(THIS_FILE, "We are probably on 1.5 : use standard simple tabs");
@@ -377,10 +383,11 @@ public class SipHome extends TabActivity {
 	}
 	
 	public void onBackPressed() {
-		if(prefWrapper != null) {
+		if(prefProviderWrapper != null) {
 			Log.d(THIS_FILE, "On back pressed ! ");
-    		ArrayList<String> networks = prefWrapper.getAllIncomingNetworks();
-			if (networks.size() == 0) {
+    		//ArrayList<String> networks = prefWrapper.getAllIncomingNetworks();
+			//if (networks.size() == 0) {
+			if( ! prefProviderWrapper.isValidConnectionForIncoming()) {
 				disconnectAndQuit();
 				return;
 			}
@@ -392,7 +399,7 @@ public class SipHome extends TabActivity {
 	private void populateMenu(Menu menu) {
 		WizardInfo distribWizard = CustomDistribution.getCustomDistributionWizard();
 		if(distribWizard != null) {
-			menu.add(Menu.NONE, DISTRIB_ACCOUNT_MENU, Menu.NONE, "Mon Keyyo VoIP").setIcon(distribWizard.icon);
+			menu.add(Menu.NONE, DISTRIB_ACCOUNT_MENU, Menu.NONE, "My " + distribWizard.label).setIcon(distribWizard.icon);
 		}
 		if(CustomDistribution.distributionWantsOtherAccounts()) {
 			menu.add(Menu.NONE, ACCOUNTS_MENU, Menu.NONE, (distribWizard == null)?R.string.accounts:R.string.other_accounts).setIcon(R.drawable.ic_menu_accounts);
@@ -429,7 +436,7 @@ public class SipHome extends TabActivity {
 			return true;
 		case CLOSE_MENU:
 			Log.d(THIS_FILE, "CLOSE");
-			if(prefWrapper.isValidConnectionForIncoming()) {
+			if(prefProviderWrapper.isValidConnectionForIncoming()) {
 				//Alert user that we will disable for all incoming calls as he want to quit
 				new AlertDialog.Builder(this)
 					.setTitle(R.string.warning)

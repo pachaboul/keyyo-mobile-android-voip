@@ -51,10 +51,15 @@
     <item>Automaticky</item>
     <item>Speex</item>
     <item>Jednoduché</item>
+    <item>WebRTC</item>
   </string-array>
   <string-array name="dial_press_mode_choices">
     <item>Používat nastavení Androidu</item>
     <item>Vynutit</item>
     <item>Zamezit</item>
+  </string-array>
+  <string-array name="band_types_name">
+    <item>Úzkopásmové</item>
+    <item>Širokopásmové</item>
   </string-array>
 </resources>

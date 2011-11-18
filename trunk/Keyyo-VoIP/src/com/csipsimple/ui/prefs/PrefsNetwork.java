@@ -41,7 +41,7 @@ public class PrefsNetwork extends GenericPrefs {
 		super.afterBuildPrefs();
 		TelephonyManager telephonyManager = (TelephonyManager) getApplicationContext().getSystemService(TELEPHONY_SERVICE);
 		
-		if (telephonyManager.getPhoneType() == TelephonyManager.PHONE_TYPE_CDMA) {
+		if (telephonyManager.getPhoneType() == 2 /*TelephonyManager.PHONE_TYPE_CDMA*/) {
 			hidePreference("for_incoming", "use_gprs_in");
 			hidePreference("for_outgoing", "use_gprs_out");
 			hidePreference("for_incoming", "use_edge_in");
@@ -69,11 +69,14 @@ public class PrefsNetwork extends GenericPrefs {
 			hidePreference("transport", SipConfigManager.RTP_PORT);
 			hidePreference("transport", SipConfigManager.USE_IPV6);
 			hidePreference("transport", SipConfigManager.OVERRIDE_NAMESERVER);
+			hidePreference("transport", SipConfigManager.FORCE_NO_UPDATE);
 			
 			hidePreference("transport", SipConfigManager.ENABLE_QOS);
 			hidePreference("transport", SipConfigManager.DSCP_VAL);
 			hidePreference("transport", SipConfigManager.USER_AGENT);
 			
+			hidePreference("transport", SipConfigManager.TIMER_MIN_SE);
+			hidePreference("transport", SipConfigManager.TIMER_SESS_EXPIRES);
 		}
 	}
 

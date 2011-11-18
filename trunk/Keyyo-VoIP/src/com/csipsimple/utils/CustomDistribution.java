@@ -24,13 +24,15 @@ import com.csipsimple.wizards.impl.Keyyo;
 import com.keyyomobile.android.voip.R;
 
 public class CustomDistribution {
-
-	
-	
 	
 	//Keyyo distribution
+
 	public static boolean distributionWantsOtherAccounts() {
 		return true;
+	}
+	
+	public static boolean distributionWantsOtherProviders() {
+		return false;
 	}
 	
 	public static String getSupportEmail() {
@@ -48,29 +50,25 @@ public class CustomDistribution {
 				Keyyo.class);
 		 
 	}
-
+	
 	public static String getRootPackage() {
 		return "com.keyyomobile.android.voip";
 	}
-
-	public static boolean distributionWantsOtherProviders() {
-		return false;
-	}
-
+	
 	public static boolean showIssueList() {
 		return false;
 	}
-
+	
 	public static String getFaqLink() {
 		return "http://www.keyyomobile.com/voip/faq.htm";
 	}
-
-	public static boolean supportMessaging() {
-		return false;
-	}
-
+	
 	public static boolean showFirstSettingScreen() {
 		return false;
+	}
+	
+	public static boolean supportMessaging() {
+		return true;
 	}
 
 	public static boolean forceNoMultipleCalls() {
